@@ -50,9 +50,9 @@ function extensions() {
 
     if (!skip) {
       extensions[item.id] = {
-	name: item.name,
-	version: item.version,
-	icon: item.iconURL
+        name: item.name,
+        version: item.version,
+        icon: item.iconURL
       };
     }
   }
