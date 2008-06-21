@@ -18,7 +18,15 @@ function extensions() {
 
   const TYPE_EXTENSION = 2; // this is defined in nsIUpdateItem
 
-  var results = extMgr.getIncompatibleItemList(appInfo.ID, appInfo.version, TYPE_EXTENSION, true, {});
+  try {
+    // Firefox 3
+    var results = extMgr.getIncompatibleItemList(null, null, null, TYPE_EXTENSION, true, {});
+  }
+  catch(e) {
+    // Firefox 2 and below
+    var results = extMgr.getIncompatibleItemList(null, null, TYPE_EXTENSION, true, {});
+  }
+
   for (var i = 0; i < results.length; i++) {
     incompatibles[results[i].id] = true;
   }
