@@ -1,0 +1,26 @@
+Firenomics has many potential parts.
+
+It is all about extensions, browsers and users
+
+For a person, having a list of the extensions they have allows:
+
+  1) a widget that has "my extensions" you can embed on your site
+
+  2) an easy way to re-install all your extensions when you move
+     computers
+
+Once I have a bunch of peoples lists I can start doing:
+
+  3) recommendation of other extensions based on similar users
+
+As an extension author I would like:
+
+  4) demographics about my users: operating systems, browser editions,
+     other installed extensions
+
+  5) more fine grained information about usage of my extension
+     (instead of "daily users" which addons.mozilla.org provides,
+     provide event based reporting)
+
+  6) exception reporting with system information to help determine
+     conflicts and rates of incidence.
