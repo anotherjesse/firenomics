@@ -1,12 +1,11 @@
 const appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                          .getService(Components.interfaces.nsIXULAppInfo);
+                  .getService(Components.interfaces.nsIXULAppInfo);
 const runtime = Components.classes["@mozilla.org/xre/app-info;1"]
-                           .getService(Components.interfaces.nsIXULRuntime);
-
-const extMgr = Components.classes["@mozilla.org/extensions/manager;1"]
-                         .getService(Components.interfaces.nsIExtensionManager);
-const RDFS = Components.classes['@mozilla.org/rdf/rdf-service;1']
-                       .getService(Components.interfaces.nsIRDFService);
+                  .getService(Components.interfaces.nsIXULRuntime);
+const extMgr  = Components.classes["@mozilla.org/extensions/manager;1"]
+                  .getService(Components.interfaces.nsIExtensionManager);
+const RDFS    = Components.classes['@mozilla.org/rdf/rdf-service;1']
+                  .getService(Components.interfaces.nsIRDFService);
 
 function extensions() {
   var extensions = {};
