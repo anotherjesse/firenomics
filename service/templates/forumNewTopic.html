@@ -1,0 +1,12 @@
+$def with (forum)
+$var title: New topic for $forum.name
+
+<form method="post">
+  <h3>New topic for $forum.name</h3>
+  <p>Title</p>
+  <input type="text" name="title" /><br />
+  <p>Body</p>
+  <textarea name="body"></textarea><br />
+  <input type="submit" value="Post Topic" />
+</form>
+

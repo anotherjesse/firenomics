@@ -1,0 +1,68 @@
+$def with (article, captcha, admin)
+$var title: $article.title
+
+<div class="heading">Article <span>$article.title</span></div>
+
+<div class="column span-3 first" id="stats">
+    <h4 id="published">Published</h4>
+    <p style="padding-left: 20px">$article.pretty_date()</p>
+
+    <h4 id="tags">Tags</h4>
+    <p style="padding-left: 20px">
+    $for tag in article.tags:
+        <a href="/tags/$tag">$tag</a>
+    </p>
+
+    $if article.is_saved():
+        <h4 id="comments"><a href="#comment_list">$article.comment_set.count() comments</a></h4>
+    <br />
+
+</div>
+
+<div class="column span-8" id="article">
+  $:article.body
+  <br style="clear: both;" />
+</div>
+
+<div class="column span-3 last">&nbsp;</div>
+
+$if article.is_saved():
+    <div class="comments">
+    $if article.comment_set.count() > 0:
+        <h3 id="comment_list">Comments</h3>
+        $for comment in article.comment_set.order('created').fetch(limit=50):
+            <div class="comment" id="$comment.anchor()">
+            <div class="column first prepend-1 span-2" style="text-align:right">
+                <img src="$comment.gravatar(80)" style="margin:0;"><br />
+                $if comment.url:
+                    <a href="$comment.url" rel="external nofollow"><strong class="name">$comment.name</strong></a>
+                $else:
+                    <strong class="name">$comment.name</strong>
+            </div>
+            <div class="column span-8">$:comment.body_html</div>
+            <div class="date column last span-3">$comment.pretty_date()</div>
+            $if admin:
+                <div class="admin">
+                <a href="mailto:$comment.email">$comment.email</a> |
+                <a href="/admin/comments/$comment.key()">edit</a> |
+                <a href="/admin/comments/delete/$comment.key()" onclick="return confirm('delete?')">delete</a>
+                </div>
+            </div>
+            <div style="clear:both; margin-bottom:40px"></div>
+    $if article.comment_set.count() > 50:
+        <p>Showing first 50 of $article.comment_set.count() comments...</p>
+    <a name="comment"></a>
+    <h3>Add your comment</h3>
+      <div class="comment column prepend-3 span-8 append-3 first last">
+      <form method="post" action="/comment">
+        <input type="hidden" name="slug" value="$article.slug" />
+        <p><input type="text" name="name" id="comment_name" /> <label for="comment_name"> Name (required)</label></p>
+        <p><input type="text" name="email" id="comment_email" /> <label for="comment_email">Email (required, will not be published)</label></p>
+        <p><input type="text" name="url" id="comment_url" /> <label for="comment_url">Website (optional)</label></p>
+        <p><textarea name="body"></textarea></p>
+        $:captcha
+        <input type="submit" value="Submit Comment" />
+      </form>
+      </div>
+  </div>
+

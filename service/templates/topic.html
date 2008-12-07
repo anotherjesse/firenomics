@@ -1,0 +1,79 @@
+$def with (topic, login_url, gravatar)
+$var title: $topic.title
+
+<h3><a href="/forums">Forums</a> &raquo; <a href="$topic.forum.slug/forum">$topic.forum.name</a> &raquo; $topic.title</h3>
+
+
+<ul class="topics">
+  $for post in topic.post_set.order('created'):
+      <li>
+        <div class="meta">
+          <img src="$post.gravatar(48)" />
+          <em>$post.nickname</em>
+          $topic.pretty_date()
+        </div>
+        <div class="body">$:post.body_html</div>
+        <br style="clear:both" />
+      </li>
+$if login_url:
+    <li><a href="$:login_url">Sign in with your <b>Google Account</b> to reply</a></li>
+$else:
+    <li>
+       <div class="meta">
+         <img src="$gravatar" />
+         <em>You</em>
+       </div>
+       <div class="body">
+         <form method="post" style="margin-top: -5px">
+           <textarea name="body" style="width: 100%; height: 100px;"></textarea>
+           <input type="submit" value="Post Response" />
+         </form>
+       </div>
+    </li>
+
+
+</ul>
+
+
+
+<style type="text/css">
+  .topics li {
+    padding-bottom: 20px;
+    border-top: 1px solid #eee;
+    padding-top: 5px;
+  }
+
+  .topics li .title a {
+    font-size: 1.5em;
+  }
+
+  .topics li .meta {
+    margin: 0 5px 0 0;
+    float: left;
+    width: 100px;
+    text-align: right;
+  }
+
+  .topics li .meta img {
+    margin: 0;
+  }
+
+  .topics li .meta em {
+    display: block;
+    color: #f00;
+  }
+
+  .topics li br {
+    display: block;
+    margin-top: 0.5em;
+  }
+
+  .topics li .body {
+    background: #fff;
+    float: left;
+    margin-left: 10px;
+    width: 400px;
+  }
+</style>
+
+

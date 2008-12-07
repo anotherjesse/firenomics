@@ -1,0 +1,45 @@
+$def with (forums, users)
+
+$var title: Forums
+
+<style type="text/css">
+
+  #topics li {
+    padding: 5px;
+    margin-bottom: 10px;
+  }
+
+  #topics li:hover {
+    background-color: #eee;
+  }
+
+  #topics li .title a {
+    font-size: 1.5em;
+  }
+
+  #topics li .count {
+    float: right;
+  }
+
+  #topics li .count em {
+    font-size: 2em;
+    text-align: center;
+    display: block;
+    font-weight: bold;
+  }
+</style>
+
+<h3>Forums</h3>
+
+
+<div id="topics">
+  <ul>
+  $for forum in forums:
+      <li>
+        <span class="count"><em>$forum.topic_set.count()</em> topics</span>
+        <div class="title"><a href="$forum.slug/forum">$forum.name</a></div>
+        <p>$forum.description</p>
+        <div style="clear: both"></div>
+      </li>
+  </ul>
+</div>

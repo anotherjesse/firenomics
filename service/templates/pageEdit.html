@@ -1,0 +1,34 @@
+$def with (page, slug)
+$var title: Editing $slug
+
+
+<script type="text/javascript" src="/static/jquery-1.2.6.min.js"></script>
+<script type="text/javascript" src="/static/markitup/jquery.markitup.pack.js"></script>
+<script type="text/javascript" src="/static/markitup/sets/html/set.js"></script>
+<link rel="stylesheet" type="text/css" href="/static/markitup/skins/markitup/style.css" />
+<link rel="stylesheet" type="text/css" href="/static/markitup/sets/html/style.css" />
+
+<form method="post">
+  <label>
+    Page Title:<br />
+    <input type="text" name="title" value="$page.title" />
+  </label><br />
+  <label>
+    Meta Description:<br />
+    <input type="text" name="metaDescription" value="$page.metaDescription" />
+  </label>
+  <br />
+  <label>
+    Content:<br />
+    <textarea id="daBody" name="body">$page.body</textarea>
+  </label>
+  <br />
+  <input type="submit" name="save" />
+</form>
+
+<script type="text/javascript">
+  jQuery(function() {
+    myHtmlSettings.previewTemplatePath = '/preview-page';
+    jQuery('#daBody').markItUp(myHtmlSettings);
+  });
+</script>

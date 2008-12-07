@@ -1,0 +1,19 @@
+$def with (page)
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <title>$page.title | Firenomics</title>
+    $:page.get('head')
+  </head>
+
+<body>
+  <div id="header">
+    <div class="container">
+    <h1><a href="/">firenomics</h1>
+  </div>
+
+  $:page
+</body>
+</html>
