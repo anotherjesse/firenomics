@@ -26,10 +26,10 @@ urls = (
   '(.*)', 'page'
 )
 
-web.template.Template.globals['hack'] = Article
-web.template.Template.globals['analytics'] = analytics
-web.template.Template.globals['card'] = open('templates/partials/card.html').read()
-web.template.Template.globals['rss'] = open('templates/partials/rss.html').read()
+#web.template.Template.globals['hack'] = Article
+#web.template.Template.globals['analytics'] = analytics
+#web.template.Template.globals['card'] = open('templates/partials/card.html').read()
+#web.template.Template.globals['rss'] = open('templates/partials/rss.html').read()
 
 
 render = web.template.render('templates', base='base')
