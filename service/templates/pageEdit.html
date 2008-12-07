@@ -1,13 +1,6 @@
 $def with (page, slug)
 $var title: Editing $slug
 
-
-<script type="text/javascript" src="/static/jquery-1.2.6.min.js"></script>
-<script type="text/javascript" src="/static/markitup/jquery.markitup.pack.js"></script>
-<script type="text/javascript" src="/static/markitup/sets/html/set.js"></script>
-<link rel="stylesheet" type="text/css" href="/static/markitup/skins/markitup/style.css" />
-<link rel="stylesheet" type="text/css" href="/static/markitup/sets/html/style.css" />
-
 <form method="post">
   <label>
     Page Title:<br />
@@ -25,10 +18,3 @@ $var title: Editing $slug
   <br />
   <input type="submit" name="save" />
 </form>
-
-<script type="text/javascript">
-  jQuery(function() {
-    myHtmlSettings.previewTemplatePath = '/preview-page';
-    jQuery('#daBody').markItUp(myHtmlSettings);
-  });
-</script>
