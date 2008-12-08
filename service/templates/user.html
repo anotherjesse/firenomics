@@ -4,5 +4,5 @@ $var title: $user.name
 <h1>$user.name</h1>
 <ul>
 $for ux in user.userextension_set:
-    <li><a href="/extensions/$ux.extension.mid">$ux.extension.name</a></li>
+    <li><a href="/extensions/$ux.extension.mid">$ux.extension.name</a> $ux.extension.userextension_set.count()</li>
 </ul>

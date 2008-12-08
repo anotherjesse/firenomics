@@ -54,12 +54,16 @@ class login:
 
 class welcome:
     def GET(self):
+        return render.welcome()
+
+    def POST(self):
         user = db.GqlQuery("SELECT * FROM User WHERE goog = :1", users.get_current_user()).get()
         if not user:
             user = User()
             user.goog = users.get_current_user()
-            user.name = "Hi"
-            user.put()
+            user.name = web.input().name
+            user.put() # FIXME: uniq on name
+
         return web.seeother('/')
 
 class forum:
