@@ -238,31 +238,42 @@ class update:
         if not user:
             web.ctx.status = "401 Unauthorized"
             return
-        i = web.input()
-        json = simplejson.loads(i.data)
+        # Build a dictionary of the user's current extensions
         user_extensions = db.GqlQuery("SELECT * FROM UserExtension WHERE user = :1", user)
         ux_dict = {}
         for e in user_extensions:
             ux_dict[e.extension.mid] = e
+        web.debug(ux_dict)
+        # Get the json
+        i = web.input()
+        json = simplejson.loads(i.data)
         for mid in json:
+            web.debug("processing " + mid)
             key = db.Key.from_path('Extension', mid)
-            ux = UserExtension()
             extension = Extension.get(key)
             if not extension:
+                web.debug("new extension: " + mid)
                 extension = Extension(key_name=mid)
                 extension.mid = mid
                 extension.name = json[mid]['name']
                 extension.icon_url = json[mid]['icon']
                 extension.put()
-            ux.extension = extension
-            ux.version = json[mid]['version']
-            ux.user = user
-            ux.put()
             if ux_dict.has_key(mid):
+                web.debug("user had extension " + mid)
+                ux_dict[mid].version = json[mid]['version']
+                ux_dict[mid].put()
                 del ux_dict[mid]
+            else:
+                web.debug("user did not have extension " + mid)
+                ux = UserExtension()
+                ux.extension = extension
+                ux.version = json[mid]['version']
+                ux.user = user
+                ux.put()
         # Delete any user extensions from the database that weren't in the update
         for ux in ux_dict:
-            ux.delete()
+            web.debug("user no longer has extension " + mid)
+            ux_dict[ux].delete()
         web.ctx.status = "200 OK"
         return
 
