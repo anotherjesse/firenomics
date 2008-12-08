@@ -79,3 +79,22 @@ function sysInfo() {
     OS: runtime.OS
   };
 }
+
+function sendExtensionList() {
+  const SUBMIT_URL = "http://firenomics.appspot.com/";
+
+  var list = extensions();
+
+  var nsJSON = Components.classes["@mozilla.org/dom/json;1"]
+                         .createInstance(Components.interfaces.nsIJSON);
+  var json = nsJSON.encode(list);
+
+  var postBody = "data=" + encodeURIComponent(json);
+
+  var req = Components.classes["@mozilla.org/xmlextras/xmlhttprequest;1"]
+                      .createInstance(Components.interfaces.nsIXMLHttpRequest);
+  req.mozBackgroundRequest = true;
+  req.open("POST", SUBMIT_URL);
+  req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+  req.send(postBody);
+}
