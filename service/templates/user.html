@@ -1,7 +1,11 @@
 $def with (user)
 $var title: $user.name
 
+<img src="$user.gravatar(80)" style="float :left; padding: 10px" />
 <h1>$user.name</h1>
+
+<div class="clear"></div>
+
 <ul>
 $for ux in user.userextension_set:
     <li><a href="/extensions/$ux.extension.mid">$ux.extension.name</a> $ux.extension.userextension_set.count()</li>

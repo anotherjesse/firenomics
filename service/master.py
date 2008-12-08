@@ -10,7 +10,9 @@ import simplejson
 PUB = 'FIXME'
 
 urls = (
-  '/', 'extensions',
+  '/()', 'static',
+  '/(about)', 'static',
+  '/(install)', 'static',
   '(.*).html', 'redirect',
   '(.+)/', 'redirect',
   '/login', 'login',
@@ -20,6 +22,7 @@ urls = (
   '(.+)/forum', 'topics',
   '(.+)/forum/new', 'newTopic',
   '(.+)/forum/([^/]*)', 'topic',
+  '/home', 'update',
   '/users/(.*)', 'user',
   '/welcome', 'welcome',
   '/extensions', 'extensions',
@@ -36,6 +39,11 @@ urls = (
 
 render = web.template.render('templates', base='base')
 render_no_layout = web.template.render('templates')
+
+class static:
+    def GET(self, slug):
+        if slug == '': slug = 'index'
+        return render.__getattr__(slug)()
 
 class logout:
     def GET(self):
@@ -221,12 +229,16 @@ class extension:
         extension = db.GqlQuery("SELECT * FROM Extension WHERE mid = :1", mid)[0]
         return render.extension(extension)
 
+def getUser():
+    goog = users.get_current_user()
+    if goog:
+        return db.GqlQuery("SELECT * FROM User WHERE goog = :1", goog).get()
 
 class update:
     def GET(self):
-        user = db.GqlQuery("SELECT * FROM User WHERE goog = :1", users.get_current_user()).get()
+        user = getUser()
         if not user:
-            web.seeother('/login')
+            return web.seeother('/login')
 
         return render.user(user)
 

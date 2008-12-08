@@ -10,7 +10,7 @@ class Gravatar:
 class GravatarUser(Gravatar):
     def get_email(self):
         try:
-            return self.user.email()
+            return self.goog.email()
         except Exception:
             return 'nan'
 
@@ -104,7 +104,7 @@ class Comment(db.Model, Gravatar, NiceDates, Anchor):
     created = db.DateTimeProperty(auto_now_add=True)
     raw = db.TextProperty()
 
-class User(db.Model):
+class User(db.Model, GravatarUser):
     name = db.StringProperty()
     goog = db.UserProperty()
 
@@ -113,7 +113,7 @@ class Extension(db.Model, NiceDates):
     name = db.StringProperty()
     icon_url = db.StringProperty()
 
-class UserExtension(db.Model, NiceDates, GravatarUser):
+class UserExtension(db.Model, NiceDates):
     extension = db.Reference(Extension)
     user = db.Reference(User)
     version = db.StringProperty()
