@@ -10,6 +10,7 @@ import simplejson
 PUB = 'FIXME'
 
 urls = (
+  '/', 'extensions',
   '(.*).html', 'redirect',
   '(.+)/', 'redirect',
   '/login', 'login',
@@ -54,7 +55,11 @@ class login:
 
 class welcome:
     def GET(self):
-        return render.welcome()
+        user = db.GqlQuery("SELECT * FROM User WHERE goog = :1", users.get_current_user()).get()
+        if not user:
+            return render.welcome()
+        else:
+            return web.seeother('/update')
 
     def POST(self):
         user = db.GqlQuery("SELECT * FROM User WHERE goog = :1", users.get_current_user()).get()
@@ -219,10 +224,11 @@ class extension:
 
 class update:
     def GET(self):
-        user = users.get_current_user()
-        web.debug("user: %s" % user)
-        uxs = db.GqlQuery("SELECT * FROM UserExtension WHERE user = :1", user)
-        return render.update(uxs)
+        user = db.GqlQuery("SELECT * FROM User WHERE goog = :1", users.get_current_user()).get()
+        if not user:
+            web.seeother('/login')
+
+        return render.user(user)
 
     def POST(self):
         if not users.get_current_user():
