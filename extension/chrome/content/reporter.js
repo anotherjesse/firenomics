@@ -58,6 +58,7 @@ function extensions() {
         name: item.name,
         version: item.version,
         icon: item.iconURL
+        updateRDF: item.updateRDF ? item.updateRDF : null
       };
     }
   }
