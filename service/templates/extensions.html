@@ -4,5 +4,5 @@ $var title: Extensions
 
 <ul>
 $for extension in extensions:
-    <li><a href="/extensions/$extension.mid">$extension.name</a></li>
+    <li><a href="/extensions/$extension.mid">$extension.name</a> $extension.userextension_set.count()</li>
 </ul>

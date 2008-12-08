@@ -10,13 +10,9 @@ import simplejson
 PUB = 'FIXME'
 
 urls = (
+  '/', 'extensions',
   '(.*).html', 'redirect',
   '(.+)/', 'redirect',
-  '/articles/\d+/\d+/\d+/([A-Za-z0-9\-]+)', 'articleRedirect',
-  '/articles', 'articleList',
-  '/articles/([A-Za-z0-9\-]+)', 'articleShow',
-  '/tags/([A-Za-z0-9\-]+)', 'tag',
-  '/preview-(.*)', 'preview',
   '/login', 'login',
   '/logout', 'logout',
   '/forums',  'forum',
@@ -24,6 +20,8 @@ urls = (
   '(.+)/forum', 'topics',
   '(.+)/forum/new', 'newTopic',
   '(.+)/forum/([^/]*)', 'topic',
+  '/users/(.*)', 'user',
+  '/welcome', 'welcome',
   '/extensions', 'extensions',
   '/extensions/(.*)', 'extension',
   '/update', 'update',
@@ -46,7 +44,7 @@ class logout:
 
 class login:
     def GET(self):
-         return web.seeother(users.create_login_url('/'))
+         return web.seeother(users.create_login_url('/welcome'))
 
 
 
@@ -54,32 +52,24 @@ class login:
 # pages
 # articles ? (draft)
 # forums
-class articleList:
+
+class welcome:
     def GET(self):
-        articles = db.GqlQuery("SELECT * FROM Article ORDER BY created DESC")
-        return render.articleList(articles)
-
-class articleShow:
-    def GET(self, slug):
-        admin = users.is_current_user_admin()
-        articles = db.GqlQuery("SELECT * FROM Article WHERE slug = :1", slug)
-        article = articles.get()
-        captcha_html = captcha.displayhtml(PUB)
-        return render.articleShow(article, captcha_html, admin)
-
-
-class preview:
-    def GET(self, kind = 'page'):
-        if kind == 'article':
-            article = Article()
-            article.body = '<!-- content -->'
-            captcha_html = captcha.displayhtml(PUB)
-            return render.articleShow(article, captcha_html, False)
+        user = db.GqlQuery("SELECT * FROM User WHERE goog = :1", users.get_current_user()).get()
+        if not user:
+            return render.welcome()
         else:
-            page = Page()
-            page.body = '<!-- content -->'
-            return render.pageShow(page, 'foo')
+            return web.seeother('/update')
 
+    def POST(self):
+        user = db.GqlQuery("SELECT * FROM User WHERE goog = :1", users.get_current_user()).get()
+        if not user:
+            user = User()
+            user.goog = users.get_current_user()
+            user.name = web.input().name
+            user.put() # FIXME: uniq on name
+
+        return web.seeother('/')
 
 class forum:
     def GET(self):
@@ -216,6 +206,11 @@ class page:
         page.put()
         return web.seeother(slug)
 
+class user:
+    def GET(self, name):
+        user = db.GqlQuery("SELECT * FROM User WHERE name = :1", name).get()
+        return render.user(user)
+
 class extensions:
     def GET(self):
         extensions = db.GqlQuery("SELECT * FROM Extension ORDER BY name ASC")
@@ -229,28 +224,59 @@ class extension:
 
 class update:
     def GET(self):
-        user = users.get_current_user()
-        uxs = db.GqlQuery("SELECT * FROM UserExtension WHERE user = :1", user)
-        return render.update(uxs)
+        user = db.GqlQuery("SELECT * FROM User WHERE goog = :1", users.get_current_user()).get()
+        if not user:
+            web.seeother('/login')
+
+        return render.user(user)
 
     def POST(self):
-        user = users.get_current_user()
+        if not users.get_current_user():
+            web.ctx.status = "401 Unauthorized"
+            return
+
+        user = db.GqlQuery("SELECT * FROM User WHERE goog = :1", users.get_current_user()).get()
+
+        if not user:
+            web.ctx.status = "401 Unauthorized"
+            return
+
+        # Build a dictionary of the user's current extensions
+        user_extensions = db.GqlQuery("SELECT * FROM UserExtension WHERE user = :1", user)
+        ux_dict = {}
+        for e in user_extensions:
+            ux_dict[e.extension.mid] = e
+        web.debug(ux_dict)
+
         i = web.input()
         json = simplejson.loads(i.data)
         for mid in json:
+            web.debug("processing " + mid)
             key = db.Key.from_path('Extension', mid)
-            ux = UserExtension()
             extension = Extension.get(key)
             if not extension:
+                web.debug("new extension: " + mid)
                 extension = Extension(key_name=mid)
                 extension.mid = mid
-            extension.name = json[mid]['name']
-#            extension.icon_url = json[mid]['icon_url']
-            extension.put()
-            ux.extension = extension
-            ux.version = json[mid]['version']
-            ux.user = user
-            ux.put()
+                extension.name = json[mid]['name']
+                extension.icon_url = json[mid]['icon']
+                extension.put()
+            if ux_dict.has_key(mid):
+                web.debug("user had extension " + mid)
+                ux_dict[mid].version = json[mid]['version']
+                ux_dict[mid].put()
+                del ux_dict[mid]
+            else:
+                web.debug("user did not have extension " + mid)
+                ux = UserExtension()
+                ux.extension = extension
+                ux.version = json[mid]['version']
+                ux.user = user
+                ux.put()
+        # Delete any user extensions from the database that weren't in the update
+        for ux in ux_dict:
+            web.debug("user no longer has extension " + mid)
+            ux_dict[ux].delete()
         web.ctx.status = "200 OK"
         return
 

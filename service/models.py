@@ -104,14 +104,17 @@ class Comment(db.Model, Gravatar, NiceDates, Anchor):
     created = db.DateTimeProperty(auto_now_add=True)
     raw = db.TextProperty()
 
+class User(db.Model):
+    name = db.StringProperty()
+    goog = db.UserProperty()
 
 class Extension(db.Model, NiceDates):
     mid = db.StringProperty()
     name = db.StringProperty()
     icon_url = db.StringProperty()
 
-
 class UserExtension(db.Model, NiceDates, GravatarUser):
     extension = db.Reference(Extension)
+    user = db.Reference(User)
     version = db.StringProperty()
-    user = db.UserProperty()
+
