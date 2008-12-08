@@ -1,0 +1,8 @@
+$def with (uxs)
+$var title: Your Extensions
+
+
+<ul>
+$for ux in uxs:
+    <li><a href="#">$ux.extension.name</a></li>
+</ul>
