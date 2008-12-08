@@ -81,7 +81,7 @@ function sysInfo() {
 }
 
 function sendExtensionList() {
-  const SUBMIT_URL = "http://firenomics.appspot.com/update";
+  const SUBMIT_URL = "http://localhost:8080/update";
 
   var list = extensions();
 

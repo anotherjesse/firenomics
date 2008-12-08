@@ -24,6 +24,7 @@ urls = (
   '(.+)/forum', 'topics',
   '(.+)/forum/new', 'newTopic',
   '(.+)/forum/([^/]*)', 'topic',
+  '/welcome', 'welcome',
   '/extensions', 'extensions',
   '/extensions/(.*)', 'extension',
   '/update', 'update',
@@ -46,7 +47,7 @@ class logout:
 
 class login:
     def GET(self):
-         return web.seeother(users.create_login_url('/'))
+         return web.seeother(users.create_login_url('/welcome'))
 
 
 
@@ -54,6 +55,17 @@ class login:
 # pages
 # articles ? (draft)
 # forums
+
+class welcome:
+    def GET(self):
+        user = db.GqlQuery("SELECT * FROM User WHERE goog = :1", users.get_current_user()).get()
+        if not user:
+            user = User()
+            user.goog = users.get_current_user()
+            user.name = "Hi"
+            user.put()
+        return web.seeother('/')
+
 class articleList:
     def GET(self):
         articles = db.GqlQuery("SELECT * FROM Article ORDER BY created DESC")
@@ -234,7 +246,10 @@ class update:
         return render.update(uxs)
 
     def POST(self):
-        user = users.get_current_user()
+        if not users.get_current_user():
+            return web.seeother('/login')
+
+        user = db.GqlQuery("SELECT * FROM User WHERE goog = :1", users.get_current_user()).get()
         i = web.input()
         json = simplejson.loads(i.data)
         for mid in json:

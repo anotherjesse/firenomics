@@ -4,5 +4,5 @@ $var title: $extension.name
 <h1>$extension.name</h1>
 <ul>
 $for ux in extension.userextension_set:
-    <li><a href="/users/$ux.user">$ux.get_nickname()</a></li>
+    <li><a href="/users/$ux.user.name">$ux.user.name</a></li>
 </ul>
