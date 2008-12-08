@@ -96,18 +96,21 @@ function sendExtensionList() {
   req.send(postBody);
 }
 
-function getIcon(iconURL) {
+function getIcon(iconURL, callback) {
   var ios = Cc['@mozilla.org/network/io-service;1']
             .getService(Ci.nsIIOService);
   var chan = ios.newChannel(iconURL, null, null);
-  var listener = new IconLoadListener(iconURL, chan);
+  var listener = new IconLoadListener(iconURL, chan, callback);
   chan.notificationCallbacks = listener;
   chan.asyncOpen(listener, null);
 }
 
-function IconLoadListener(iconURL, channel) {
+function IconLoadListener(iconURL, channel, callback) {
   this._iconURL = iconURL;
   this._channel = channel;
+  this._callback = callback;
+  this._bytes = [];
+  this._bytesRead = 0;
 }
 
 IconLoadListener.prototype = {
@@ -160,9 +163,30 @@ IconLoadListener.prototype = {
 
         var iconData = String.fromCharCode.apply(null, this._bytes);
         data += btoa(iconData);
+
+        this._callback.result(this._iconURL, data);
       }
     }
 
     this._channel = null;
-  }, 
+  },
+
+  onDataAvailable: function (aRequest, aContext, aInputStream, aOffset, aCount) {
+    // we could get a different aInputStream, so we don't save this;
+    // it's unlikely we'll get more than one onDataAvailable for a
+    // favicon anyway
+    this._stream.setInputStream(aInputStream);
+
+    var chunk = this._stream.readByteArray(aCount);
+    this._bytes = this._bytes.concat(chunk);
+    this._bytesRead += aCount;
+  },
+
+  // nsIChannelEventSink
+  onChannelRedirect: function (aOldChannel, aNewChannel, aFlags) {
+    this._channel = aNewChannel;
+  },
+
+  onProgress: function (aRequest, aContext, aProgress, aProgressMax) { },
+  onStatus: function (aRequest, aContext, aStatus, aStatusArg) { }
 };
