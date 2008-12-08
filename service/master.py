@@ -24,7 +24,9 @@ urls = (
   '(.+)/forum', 'topics',
   '(.+)/forum/new', 'newTopic',
   '(.+)/forum/([^/]*)', 'topic',
-  '/update', 'extension',
+  '/extensions', 'extensions',
+  '/extensions/(.*)', 'extension',
+  '/update', 'update',
   '(.*)', 'page',
 )
 
@@ -214,13 +216,22 @@ class page:
         page.put()
         return web.seeother(slug)
 
+class extensions:
+    def GET(self):
+        extensions = db.GqlQuery("SELECT * FROM Extension ORDER BY name ASC")
+        return render.extensions(extensions)
+
 class extension:
+    def GET(self, mid,):
+        extension = db.GqlQuery("SELECT * FROM Extension WHERE mid = :1", mid)[0]
+        return render.extension(extension)
+
+
+class update:
     def GET(self):
         user = users.get_current_user()
-        extensions = db.GqlQuery("SELECT * FROM UserExtension WHERE user = :1", user)
-        for e in extensions:
-            print repr(e)
-        return
+        uxs = db.GqlQuery("SELECT * FROM UserExtension WHERE user = :1", user)
+        return render.update(uxs)
 
     def POST(self):
         user = users.get_current_user()
