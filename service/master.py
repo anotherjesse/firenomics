@@ -224,8 +224,15 @@ class extension:
 
     def POST(self):
         user = users.get_current_user()
+        if not user:
+            web.ctx.status = "401 Unauthorized"
+            return
         i = web.input()
         json = simplejson.loads(i.data)
+        user_extensions = db.GqlQuery("SELECT * FROM UserExtension WHERE user = :1", user)
+        ux_dict = {}
+        for e in user_extensions:
+            ux_dict[e.extension.mid] = e
         for mid in json:
             key = db.Key.from_path('Extension', mid)
             ux = UserExtension()
@@ -233,13 +240,18 @@ class extension:
             if not extension:
                 extension = Extension(key_name=mid)
                 extension.mid = mid
-            extension.name = json[mid]['name']
-            extension.icon_url = json[mid]['icon']
-            extension.put()
+                extension.name = json[mid]['name']
+                extension.icon_url = json[mid]['icon']
+                extension.put()
             ux.extension = extension
             ux.version = json[mid]['version']
             ux.user = user
             ux.put()
+            if ux_dict.has_key(mid):
+                del ux_dict[mid]
+        # Delete any user extensions from the database that weren't in the update
+        for ux in ux_dict:
+            ux.delete()
         web.ctx.status = "200 OK"
         return
 

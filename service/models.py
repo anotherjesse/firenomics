@@ -115,3 +115,7 @@ class UserExtension(db.Model, NiceDates):
     extension = db.Reference(Extension)
     version = db.StringProperty()
     user = db.UserProperty()
+
+class User(db.Model, NiceDates):
+    user = db.UserProperty()
+    nickname = db.StringProperty()
