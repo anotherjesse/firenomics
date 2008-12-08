@@ -104,3 +104,14 @@ class Comment(db.Model, Gravatar, NiceDates, Anchor):
     created = db.DateTimeProperty(auto_now_add=True)
     raw = db.TextProperty()
 
+
+class Extension(db.Model, NiceDates):
+    mid = db.StringProperty()
+    name = db.StringProperty()
+    icon_url = db.StringProperty()
+
+
+class UserExtension(db.Model, NiceDates):
+    extension = db.Reference(Extension)
+    version = db.StringProperty()
+    user = db.UserProperty()
