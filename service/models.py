@@ -117,3 +117,4 @@ class UserExtension(db.Model, NiceDates, GravatarUser):
     extension = db.Reference(Extension)
     user = db.Reference(User)
     version = db.StringProperty()
+
