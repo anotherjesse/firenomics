@@ -57,7 +57,7 @@ function extensions() {
       extensions[item.id] = {
         name: item.name,
         version: item.version,
-        icon: item.iconURL
+        icon: item.iconURL,
         updateRDF: item.updateRDF ? item.updateRDF : null
       };
     }
