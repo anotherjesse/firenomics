@@ -234,7 +234,7 @@ class extension:
                 extension = Extension(key_name=mid)
                 extension.mid = mid
             extension.name = json[mid]['name']
-#            extension.icon_url = json[mid]['icon_url']
+            extension.icon_url = json[mid]['icon']
             extension.put()
             ux.extension = extension
             ux.version = json[mid]['version']
