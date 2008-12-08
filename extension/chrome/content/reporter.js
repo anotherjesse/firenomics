@@ -3,6 +3,8 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+
 const appInfo = Cc["@mozilla.org/xre/app-info;1"]
                 .getService(Ci.nsIXULAppInfo);
 const runtime = Cc["@mozilla.org/xre/app-info;1"]
@@ -93,3 +95,74 @@ function sendExtensionList() {
   req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
   req.send(postBody);
 }
+
+function getIcon(iconURL) {
+  var ios = Cc['@mozilla.org/network/io-service;1']
+            .getService(Ci.nsIIOService);
+  var chan = ios.newChannel(iconURL, null, null);
+  var listener = new IconLoadListener(iconURL, chan);
+  chan.notificationCallbacks = listener;
+  chan.asyncOpen(listener, null);
+}
+
+function IconLoadListener(iconURL, channel) {
+  this._iconURL = iconURL;
+  this._channel = channel;
+}
+
+IconLoadListener.prototype = {
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIInterfaceRequestor,
+                                         Ci.nsIRequestObserver,
+                                         Ci.nsIChannelEventSink,
+                                         Ci.nsIProgressEventSink,
+                                         Ci.nsIStreamListener]),
+
+  // nsIInterfaceRequestor
+  getInterface: function (iid) {
+    try {
+      return this.QueryInterface(iid);
+    } catch (e) {
+      throw Cr.NS_NOINTERFACE;
+    }
+  },
+
+  // nsIRequestObserver
+  onStartRequest: function (aRequest, aContext) {
+    this._stream = Cc['@mozilla.org/binaryinputstream;1']
+                   .createInstance(Ci.nsIBinaryInputStream);
+  },
+
+  onStopRequest: function (aRequest, aContext, aStatusCode) {
+    if (Components.isSuccessCode(aStatusCode) && this._bytesRead > 0) {
+      var dataURL;
+      
+      var mimeType = null;
+
+      var catMgr = Cc["@mozilla.org/categorymanager;1"]
+                   .getService(Ci.nsICategoryManager);
+      var sniffers = catMgr.enumerateCategory("content-sniffing-services");
+      while (mimeType == null && sniffers.hasMoreElements()) {
+        var snifferCID = sniffers.getNext().QueryInterface(Ci.nsISupportsCString).toString();
+        var sniffer = Cc[snifferCID].getService(Ci.nsIContentSniffer);
+
+        try {
+          mimeType = sniffer.getMIMETypeFromContent(aRequest, this._bytes, this._bytesRead);
+        } catch (ex) {
+          mimeType = null;
+          // ignore
+        }
+      }
+
+      if (this._bytes && this._bytesRead > 0 && mimeType != null) {
+        var data = 'data:';
+        data += mimeType;
+        data += ';base64,';
+
+        var iconData = String.fromCharCode.apply(null, this._bytes);
+        data += btoa(iconData);
+      }
+    }
+
+    this._channel = null;
+  }, 
+};
