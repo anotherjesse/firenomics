@@ -5,6 +5,7 @@ from vendor import web
 from models import *
 from utils import analytics
 import sanitize
+import simplejson
 
 PUB = 'FIXME'
 
@@ -23,7 +24,8 @@ urls = (
   '(.+)/forum', 'topics',
   '(.+)/forum/new', 'newTopic',
   '(.+)/forum/([^/]*)', 'topic',
-  '(.*)', 'page'
+  '/update', 'extension',
+  '(.*)', 'page',
 )
 
 #web.template.Template.globals['hack'] = Article
@@ -211,6 +213,36 @@ class page:
         page.metaDescription = i.metaDescription
         page.put()
         return web.seeother(slug)
+
+class extension:
+    def GET(self):
+        user = users.get_current_user()
+        extensions = db.GqlQuery("SELECT * FROM UserExtension WHERE user = :1", user)
+        for e in extensions:
+            print repr(e)
+        return
+
+    def POST(self):
+        user = users.get_current_user()
+        i = web.input()
+        json = simplejson.loads(i.data)
+        for mid in json:
+            key = db.Key.from_path('Extension', mid)
+            ux = UserExtension()
+            extension = Extension.get(key)
+            if not extension:
+                extension = Extension(key_name=mid)
+                extension.mid = mid
+            extension.name = json[mid]['name']
+#            extension.icon_url = json[mid]['icon_url']
+            extension.put()
+            ux.extension = extension
+            ux.version = json[mid]['version']
+            ux.user = user
+            ux.put()
+        web.ctx.status = "200 OK"
+        return
+
 
 class redirect:
     def GET(self, slug):
