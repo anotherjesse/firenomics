@@ -24,8 +24,8 @@ urls = (
   '(.+)/forum', 'topics',
   '(.+)/forum/new', 'newTopic',
   '(.+)/forum/([^/]*)', 'topic',
+  '/update', 'extension',
   '(.*)', 'page',
-  '/update', 'extension'
 )
 
 #web.template.Template.globals['hack'] = Article
@@ -218,27 +218,26 @@ class extension:
     def GET(self):
         user = users.get_current_user()
         extensions = db.GqlQuery("SELECT * FROM UserExtension WHERE user = :1", user)
-        dict = {}
         for e in extensions:
-          dict[e.extension.mid] = {name: e.extension.name, icon_url: e.extension.icon_url, version: e.version}
-        print simplejson.dumps(dict)
+            print repr(e)
         return
 
     def POST(self):
         user = users.get_current_user()
         i = web.input()
         json = simplejson.loads(i.data)
-        for k in json:
+        for mid in json:
+            key = db.Key.from_path('Extension', mid)
             ux = UserExtension()
-            extension = Extension.get(k)
+            extension = Extension.get(key)
             if not extension:
-                extension = Extension()
-                extension.mid = k
-            extension.name = json[k].name
-            extension.icon_url = json[k].icon_url
+                extension = Extension(key_name=mid)
+                extension.mid = mid
+            extension.name = json[mid]['name']
+#            extension.icon_url = json[mid]['icon_url']
             extension.put()
             ux.extension = extension
-            ux.version = json[k].version
+            ux.version = json[mid]['version']
             ux.user = user
             ux.put()
         web.ctx.status = "200 OK"
