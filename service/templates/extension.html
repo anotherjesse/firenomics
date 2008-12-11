@@ -5,6 +5,6 @@ $var title: $extension.name
 
 <p>Users:</p>
 
-$for ux in extension.userextension_set:
+$for ux in extension.profileextension_set:
     <a href="/users/$ux.user.name" title="$ux.user.name"><img src="$ux.user.gravatar(40)" /></a>
 

@@ -6,7 +6,9 @@ $var title: $user.name
 
 <div class="clear"></div>
 
-<ul>
-$for ux in user.userextension_set:
-    <li><a href="/extensions/$ux.extension.mid">$ux.extension.name</a> $ux.extension.userextension_set.count()</li>
-</ul>
+$for profile in user.profile_set:
+    <h3>$profile.name</h3>
+    <ul>
+    $for ux in profile.profileextension_set:
+        <li><a href="/extensions/$ux.extension.mid">$ux.extension.name</a> $ux.extension.profileextension_set.count()</li>
+    </ul>

@@ -113,8 +113,13 @@ class Extension(db.Model, NiceDates):
     name = db.StringProperty()
     icon_url = db.StringProperty()
 
-class UserExtension(db.Model, NiceDates):
+class Profile(db.Model):
+    name = db.StringProperty()
+    user = db.Reference(User)
+
+class ProfileExtension(db.Model, NiceDates):
     extension = db.Reference(Extension)
+    profile = db.Reference(Profile)
     user = db.Reference(User)
     version = db.StringProperty()
 

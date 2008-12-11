@@ -253,12 +253,20 @@ class update:
             web.ctx.status = "401 Unauthorized"
             return
 
+        profile = user.profile_set.get()
+        if not profile:
+            profile = Profile(name = "My Firefox", user=user)
+            profile.put()
+
+        web.debug("profile: %s" % profile)
+
         # Build a dictionary of the user's current extensions
-        user_extensions = db.GqlQuery("SELECT * FROM UserExtension WHERE user = :1", user)
-        ux_dict = {}
-        for e in user_extensions:
-            ux_dict[e.extension.mid] = e
-        web.debug(ux_dict)
+        profile_extensions = profile.profileextension_set.fetch(100)
+
+        px_dict = {}
+        for e in profile_extensions:
+            px_dict[e.extension.mid] = e
+        web.debug(px_dict)
 
         i = web.input()
         json = simplejson.loads(i.data)
@@ -273,22 +281,24 @@ class update:
                 extension.name = json[mid]['name']
                 extension.icon_url = json[mid]['icon']
                 extension.put()
-            if ux_dict.has_key(mid):
+            if px_dict.has_key(mid):
                 web.debug("user had extension " + mid)
-                ux_dict[mid].version = json[mid]['version']
-                ux_dict[mid].put()
-                del ux_dict[mid]
+                px_dict[mid].version = json[mid]['version']
+                px_dict[mid].put()
+                del px_dict[mid]
             else:
                 web.debug("user did not have extension " + mid)
-                ux = UserExtension()
-                ux.extension = extension
-                ux.version = json[mid]['version']
-                ux.user = user
-                ux.put()
+                px = ProfileExtension()
+                px.extension = extension
+                px.version = json[mid]['version']
+                px.user = user
+                px.profile = profile
+                px.put()
+
         # Delete any user extensions from the database that weren't in the update
-        for ux in ux_dict:
+        for px in px_dict:
             web.debug("user no longer has extension " + mid)
-            ux_dict[ux].delete()
+            px_dict[px].delete()
         web.ctx.status = "200 OK"
         return
 
