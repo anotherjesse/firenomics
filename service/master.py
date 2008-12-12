@@ -263,6 +263,7 @@ class update:
 
         profile.version = json['system']['version']
         profile.os = json['system']['OS']
+        profile.platform = json['system']['name']
         profile.put()
 
         web.debug("profile: %s" % profile)

@@ -118,7 +118,7 @@ class Profile(db.Model):
     os = db.StringProperty()
     version = db.StringProperty()
     user = db.Reference(User)
-
+    platform = db.StringProperty()
 
 class ProfileExtension(db.Model, NiceDates):
     extension = db.Reference(Extension)
