@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<overlay id="firenomicsOverlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <script type="application/x-javascript" src="chrome://firenomics/content/reporter.js" />
+
+  <statusbar id="status-bar">
+    <statusbarpanel label="firenomics" onclick="firenomicsSubmit()" />
+  </statusbar>
+
+</overlay>
+

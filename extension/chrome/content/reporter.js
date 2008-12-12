@@ -1,98 +1,98 @@
-const appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                  .getService(Components.interfaces.nsIXULAppInfo);
-const runtime = Components.classes["@mozilla.org/xre/app-info;1"]
-                  .getService(Components.interfaces.nsIXULRuntime);
-const extMgr  = Components.classes["@mozilla.org/extensions/manager;1"]
-                  .getService(Components.interfaces.nsIExtensionManager);
-const RDFS    = Components.classes['@mozilla.org/rdf/rdf-service;1']
-                  .getService(Components.interfaces.nsIRDFService);
+function firenomicsSubmit() {
+  const appInfo = Cc["@mozilla.org/xre/app-info;1"]
+    .getService(Ci.nsIXULAppInfo);
+  const runtime = Cc["@mozilla.org/xre/app-info;1"]
+    .getService(Ci.nsIXULRuntime);
+  const extMgr  = Cc["@mozilla.org/extensions/manager;1"]
+    .getService(Ci.nsIExtensionManager);
+  const RDFS    = Cc['@mozilla.org/rdf/rdf-service;1']
+    .getService(Ci.nsIRDFService);
 
-function extensions() {
-  var extensions = {};
 
-  var ds = extMgr.datasource;
-  ds.QueryInterface(Components.interfaces.nsIRDFDataSource);
+  function extensions() {
+    var extensions = {};
 
-  // Get list of incompatibles add-ons
-  var incompatibles = {};
+    var ds = extMgr.datasource;
+    ds.QueryInterface(Ci.nsIRDFDataSource);
 
-  const TYPE_EXTENSION = 2; // this is defined in nsIUpdateItem
+    // Get list of incompatibles add-ons
+    var incompatibles = {};
 
-  try {
-    // Firefox 3
-    var results = extMgr.getIncompatibleItemList(null, null, null, TYPE_EXTENSION, true, {});
-  }
-  catch(e) {
-    // Firefox 2 and below
-    var results = extMgr.getIncompatibleItemList(null, null, TYPE_EXTENSION, true, {});
-  }
+    const TYPE_EXTENSION = 2; // this is defined in nsIUpdateItem
 
-  for (var i = 0; i < results.length; i++) {
-    incompatibles[results[i].id] = true;
-  }
+    try {
+      // Firefox 3
+      var results = extMgr.getIncompatibleItemList(null, null, null, TYPE_EXTENSION, true, {});
+    }
+    catch(e) {
+      // Firefox 2 and below
+      var results = extMgr.getIncompatibleItemList(null, null, TYPE_EXTENSION, true, {});
+    }
 
-  // get the list of all extensions
-  var results = extMgr.getItemList(TYPE_EXTENSION, {});
-  for (var i = 0; i < results.length; i++) {
+    for (var i = 0; i < results.length; i++) {
+      incompatibles[results[i].id] = true;
+    }
 
-    var item = results[i];
-    var skip = false;
+    // get the list of all extensions
+    var results = extMgr.getItemList(TYPE_EXTENSION, {});
+    for (var i = 0; i < results.length; i++) {
 
-    // check if extension is disabled
+      var item = results[i];
+      var skip = false;
 
-    var target = ds.GetTarget(RDFS.GetResource("urn:mozilla:item:" + item.id),
-                                 RDFS.GetResource("http://www.mozilla.org/2004/em-rdf#isDisabled"),
-                                 true);
+      // check if extension is disabled
 
-    if ((target instanceof Components.interfaces.nsIRDFLiteral) &&
+      var target = ds.GetTarget(RDFS.GetResource("urn:mozilla:item:" + item.id),
+                                RDFS.GetResource("http://www.mozilla.org/2004/em-rdf#isDisabled"),
+                                true);
+
+      if ((target instanceof Ci.nsIRDFLiteral) &&
         (target.Value == 'true')) {
-      skip = true;
+        skip = true;
+      }
+
+      // check if extension is incompatible
+      if (incompatibles[item.id]) {
+        skip = true;
+      }
+
+      if (!skip) {
+        extensions[item.id] = {
+          name: item.name,
+          version: item.version,
+          icon: item.iconURL
+        };
+      }
     }
 
-    // check if extension is incompatible
-
-    if (incompatibles[item.id]) {
-      skip = true;
-    }
-
-    if (!skip) {
-      extensions[item.id] = {
-        name: item.name,
-        version: item.version,
-        icon: item.iconURL
-      };
-    }
+    return extensions;
   }
 
-  return extensions;
-}
+  function sysInfo() {
+    return {
+      ID: appInfo.ID,
+      vendor: appInfo.vendor,
+      name: appInfo.name,
+      version: appInfo.version,
+      appBuildID: appInfo.appBuildID,
+      platformVersion: appInfo.platformVersion,
+      platformBuildID: appInfo.platformBuildID,
+      OS: runtime.OS
+    };
+  }
 
-function sysInfo() {
-  return {
-    ID: appInfo.ID,
-    vendor: appInfo.vendor,
-    name: appInfo.name,
-    version: appInfo.version,
-    appBuildID: appInfo.appBuildID,
-    platformVersion: appInfo.platformVersion,
-    platformBuildID: appInfo.platformBuildID,
-    OS: runtime.OS
-  };
-}
-
-function sendExtensionList() {
   const SUBMIT_URL = "http://firenomics.appspot.com/update";
 
   var list = extensions();
 
-  var nsJSON = Components.classes["@mozilla.org/dom/json;1"]
-                         .createInstance(Components.interfaces.nsIJSON);
+  var nsJSON = Cc["@mozilla.org/dom/json;1"]
+    .createInstance(Ci.nsIJSON);
   var json = nsJSON.encode(list);
 
   var postBody = "data=" + encodeURIComponent(json);
 
-  var req = Components.classes["@mozilla.org/xmlextras/xmlhttprequest;1"]
-                      .createInstance(Components.interfaces.nsIXMLHttpRequest);
+  var req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
+    .createInstance(Ci.nsIXMLHttpRequest);
   req.mozBackgroundRequest = true;
   req.open("POST", SUBMIT_URL);
   req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
