@@ -26,6 +26,7 @@ urls = (
   '/home', 'update',
   '/users/(.*)', 'user',
   '/welcome', 'welcome',
+  '/settings', 'settings',
   '/extensions', 'extensions',
   '/extensions/(.*)', 'extension',
   '/update', 'update',
@@ -48,14 +49,35 @@ class static:
 
 class logout:
     def GET(self):
-         return web.seeother(users.create_logout_url('/'))
+        return web.seeother(users.create_logout_url('/'))
 
 
 class login:
     def GET(self):
-         return web.seeother(users.create_login_url('/welcome'))
+        return web.seeother(users.create_login_url('/welcome'))
+
+class settings:
+    def GET(self):
+        goog = users.get_current_user()
+        if not goog:
+            return web.seeother(users.create_login_url('/settings'))
+
+        user = db.GqlQuery("SELECT * FROM User WHERE goog = :1", goog).get()
+        if not user:
+            return render_no_layout.settings()
+        else:
+            return render_no_layout.thanks()
 
 
+    def POST(self):
+        user = db.GqlQuery("SELECT * FROM User WHERE goog = :1", users.get_current_user()).get()
+        if not user:
+            user = User()
+            user.goog = users.get_current_user()
+            user.name = web.input().name
+            user.put() # FIXME: uniq on name
+
+        return render_no_layout.thanks()
 
 # redirects
 # pages

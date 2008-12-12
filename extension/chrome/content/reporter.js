@@ -101,4 +101,16 @@ function firenomicsSubmit() {
   req.open("POST", SUBMIT_URL);
   req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
   req.send(postBody);
+  req.onreadystatechange = function() {
+    if (req.readyState == 4) {
+      if (req.status == 401) {
+        window.openDialog("chrome://firenomics/content/auth.xul",
+                          "authFirenomics",
+                          "centerscreen,chrome,modal");
+      }
+      if (req.status == 200) {
+        openUILinkIn('http://firenomics.appspot.com/home', 'tab');
+      }
+    }
+  };
 }
