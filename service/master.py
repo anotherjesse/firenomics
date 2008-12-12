@@ -13,6 +13,7 @@ urls = (
   '/()', 'static',
   '/(about)', 'static',
   '/(install)', 'static',
+  '/(privacy)', 'static',
   '(.*).html', 'redirect',
   '(.+)/', 'redirect',
   '/login', 'login',
