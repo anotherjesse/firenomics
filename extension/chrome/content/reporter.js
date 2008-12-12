@@ -79,15 +79,19 @@ function firenomicsSubmit() {
       platformBuildID: appInfo.platformBuildID,
       OS: runtime.OS
     };
+
   }
 
-  const SUBMIT_URL = "http://firenomics.appspot.com/update";
-
-  var list = extensions();
+  var SUBMIT_URL = "http://firenomics.appspot.com/update";
+//  var SUBMIT_URL = "http://localhost:8080/update";
 
   var nsJSON = Cc["@mozilla.org/dom/json;1"]
     .createInstance(Ci.nsIJSON);
-  var json = nsJSON.encode(list);
+
+  var json = nsJSON.encode({
+                             extensions: extensions(),
+                             system: sysInfo()
+                           });
 
   var postBody = "data=" + encodeURIComponent(json);
 

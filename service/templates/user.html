@@ -7,8 +7,8 @@ $var title: $user.name
 <div class="clear"></div>
 
 $for profile in user.profile_set:
-    <h3>$profile.name</h3>
+    <h3>$profile.name <em>$profile.version on $profile.os</em></h3>
     <ul>
     $for ux in profile.profileextension_set:
-        <li><a href="/extensions/$ux.extension.mid">$ux.extension.name</a> $ux.extension.profileextension_set.count()</li>
+        <li><a href="/extensions/$ux.extension.mid">$ux.extension.name</a> $ux.version</li>
     </ul>

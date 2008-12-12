@@ -19,6 +19,15 @@
       </RDF:Description>
     </em:targetApplication>
 
+    <!-- songbird -->
+    <em:targetApplication>
+      <Description>
+        <em:id>songbird@songbirdnest.com</em:id>
+        <em:minVersion>1.0.0rc1</em:minVersion>
+        <em:maxVersion>1.1.0pre</em:maxVersion>
+      </Description>
+    </em:targetApplication>
+
     <em:file>
       <RDF:Description RDF:about="urn:mozilla:extension:file:firenomics">
         <em:package>content/</em:package>

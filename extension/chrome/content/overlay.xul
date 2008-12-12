@@ -5,9 +5,11 @@
 
   <script type="application/x-javascript" src="chrome://firenomics/content/reporter.js" />
 
-  <statusbar id="status-bar">
-    <statusbarpanel label="firenomics" onclick="firenomicsSubmit()" />
-  </statusbar>
+  <menupopup id="menu_ToolsPopup">
+    <menuitem label="Update Firenomics" oncommand="firenomicsSubmit();" />
+  </menupopup>
+
+
 
 </overlay>
 

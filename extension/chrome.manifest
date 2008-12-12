@@ -1,4 +1,5 @@
 content firenomics  chrome/content/
 skin  firenomics  classic/1.0 chrome/skin/
 
-overlay chrome://browser/content/browser.xul  chrome://firenomics/content/browserOverlay.xul
+overlay chrome://browser/content/browser.xul          chrome://firenomics/content/overlay.xul
+overlay chrome://songbird/content/xul/menuOverlay.xul chrome://firenomics/content/overlay.xul application=songbird@songbirdnest.com

@@ -81,7 +81,6 @@ class PageVersion(db.Model):
     created = db.DateTimeProperty(auto_now_add=True)
 
 
-
 class Article(db.Model, NiceDates):
     title = db.StringProperty()
     slug = db.StringProperty()
@@ -113,9 +112,13 @@ class Extension(db.Model, NiceDates):
     name = db.StringProperty()
     icon_url = db.StringProperty()
 
+
 class Profile(db.Model):
     name = db.StringProperty()
+    os = db.StringProperty()
+    version = db.StringProperty()
     user = db.Reference(User)
+
 
 class ProfileExtension(db.Model, NiceDates):
     extension = db.Reference(Extension)

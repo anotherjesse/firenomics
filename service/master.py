@@ -252,11 +252,17 @@ class update:
         if not user:
             web.ctx.status = "401 Unauthorized"
             return
+        json = simplejson.loads(web.input().data)
 
-        profile = user.profile_set.get()
+        profile_name = "My %s" % json['system']['name']
+
+        profile = Profile.gql("WHERE user = :1 and name = :2", user, profile_name).get()
         if not profile:
-            profile = Profile(name = "My Firefox", user=user)
-            profile.put()
+            profile = Profile(name=profile_name, user=user)
+
+        profile.version = json['system']['version']
+        profile.os = json['system']['OS']
+        profile.put()
 
         web.debug("profile: %s" % profile)
 
@@ -268,9 +274,9 @@ class update:
             px_dict[e.extension.mid] = e
         web.debug(px_dict)
 
-        i = web.input()
-        json = simplejson.loads(i.data)
-        for mid in json:
+        local_extensions = json['extensions']
+        for mid in local_extensions:
+            local_extension = local_extensions[mid]
             web.debug("processing " + mid)
             key = db.Key.from_path('Extension', mid)
             extension = Extension.get(key)
@@ -278,19 +284,19 @@ class update:
                 web.debug("new extension: " + mid)
                 extension = Extension(key_name=mid)
                 extension.mid = mid
-                extension.name = json[mid]['name']
-                extension.icon_url = json[mid]['icon']
+                extension.name = local_extension['name']
+                extension.icon_url = local_extension['icon']
                 extension.put()
             if px_dict.has_key(mid):
                 web.debug("user had extension " + mid)
-                px_dict[mid].version = json[mid]['version']
+                px_dict[mid].version = local_extension['version']
                 px_dict[mid].put()
                 del px_dict[mid]
             else:
                 web.debug("user did not have extension " + mid)
                 px = ProfileExtension()
                 px.extension = extension
-                px.version = json[mid]['version']
+                px.version = local_extension['version']
                 px.user = user
                 px.profile = profile
                 px.put()
