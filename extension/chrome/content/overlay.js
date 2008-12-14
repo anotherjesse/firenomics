@@ -20,7 +20,7 @@ function fnInit(event) {
 }
 
 function fnGotoProfilePage() {
-  openUILinkIn(FirenomicsReporter.FIRENOMICS_URL + "/profile/1234", "tab");
+  openUILinkIn(FIRENOMICS_URL + "/profile/1234", "tab");
 }
 
 function fnRenderProfilePage(doc) {
@@ -32,7 +32,6 @@ function fnRenderProfilePage(doc) {
 }
 
 function fnSubmit() {
-  alert('submitting stuffs');
   FirenomicsReporter.submit();
 }
 
