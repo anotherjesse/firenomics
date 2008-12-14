@@ -1,9 +1,4 @@
-const Cc = Components.classes;
-const Ci = Components.interfaces;
-const Cr = Components.results;
-const Cu = Components.utils;
-
-Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 function firenomicsSubmit() {
   const appInfo = Cc["@mozilla.org/xre/app-info;1"]
@@ -35,7 +30,7 @@ function firenomicsSubmit() {
     }
 
     // get the list of all extensions
-    var results = extMgr.getItemList(TYPE_EXTENSION, {});
+    var results = extMgr.getItemList(Ci.nsIUpdateItem.TYPE_EXTENSION, {});
     for (var i = 0; i < results.length; i++) {
 
       var item = results[i];
@@ -60,7 +55,7 @@ function firenomicsSubmit() {
         extensions[item.id] = {
           name: item.name,
           version: item.version,
-          icon: item.iconURL
+          icon: item.iconURL,
           updateRDF: item.updateRDF ? item.updateRDF : null
         };
       }
