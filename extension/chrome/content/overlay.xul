@@ -3,13 +3,21 @@
 <overlay id="firenomicsOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
+  <script type="application/x-javascript" src="chrome://firenomics/content/overlay.js" />
   <script type="application/x-javascript" src="chrome://firenomics/content/reporter.js" />
 
   <menupopup id="menu_ToolsPopup">
     <menuitem label="Update Firenomics" oncommand="firenomicsSubmit();" />
   </menupopup>
 
+  <statusbar id="status-bar">
+    <statusbarpanel id="firenomics-panel" label="Firenomics" onclick="fnGotoProfilePage();" >
+      <image src="chrome://firenomics/skin/firenomics-16.png" />
+    </statusbarpanel>
+  </statusbar>
 
-
+  <commandset id="firenomicsCommandSet">
+    <command id="cmd_FirenomicsStatusClick" oncommand="alert('firenomics');" />
+  </commandset>
 </overlay>
 

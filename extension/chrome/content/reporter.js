@@ -81,8 +81,7 @@ function firenomicsSubmit() {
 
   }
 
-  var SUBMIT_URL = "http://firenomics.appspot.com/update";
-//  var SUBMIT_URL = "http://localhost:8080/update";
+  var SUBMIT_URL = FIRENOMICS_URL + "/update";
 
   var nsJSON = Cc["@mozilla.org/dom/json;1"]
     .createInstance(Ci.nsIJSON);
