@@ -21,7 +21,7 @@ function fnInit(event) {
 
 function fnGotoProfilePage() {
   alert('going to profile page');
-  openUILinkIn(FirenomicsReporter.FIRENOMICS_URL + "/profile/foo", "tab");
+  openUILinkIn(FIRENOMICS_URL + "/profile/foo", "tab");
 }
 
 function fnRenderProfilePage(win) {
@@ -29,7 +29,6 @@ function fnRenderProfilePage(win) {
 }
 
 function fnSubmit() {
-  alert('submitting stuffs');
   FirenomicsReporter.submit();
 }
 
