@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<overlay id="firenomicsOverlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <script type="application/x-javascript" src="chrome://firenomics/content/reporter.js" />
+
+  <menupopup id="menu_ToolsPopup">
+    <menuitem label="Update Firenomics" oncommand="firenomicsSubmit();" />
+  </menupopup>
+
+
+
+</overlay>
+

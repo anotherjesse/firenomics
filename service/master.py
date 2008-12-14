@@ -10,7 +10,10 @@ import simplejson
 PUB = 'FIXME'
 
 urls = (
-  '/', 'extensions',
+  '/()', 'static',
+  '/(about)', 'static',
+  '/(install)', 'static',
+  '/(privacy)', 'static',
   '(.*).html', 'redirect',
   '(.+)/', 'redirect',
   '/login', 'login',
@@ -20,8 +23,10 @@ urls = (
   '(.+)/forum', 'topics',
   '(.+)/forum/new', 'newTopic',
   '(.+)/forum/([^/]*)', 'topic',
+  '/home', 'update',
   '/users/(.*)', 'user',
   '/welcome', 'welcome',
+  '/settings', 'settings',
   '/extensions', 'extensions',
   '/extensions/(.*)', 'extension',
   '/update', 'update',
@@ -37,16 +42,42 @@ urls = (
 render = web.template.render('templates', base='base')
 render_no_layout = web.template.render('templates')
 
+class static:
+    def GET(self, slug):
+        if slug == '': slug = 'index'
+        return render.__getattr__(slug)()
+
 class logout:
     def GET(self):
-         return web.seeother(users.create_logout_url('/'))
+        return web.seeother(users.create_logout_url('/'))
 
 
 class login:
     def GET(self):
-         return web.seeother(users.create_login_url('/welcome'))
+        return web.seeother(users.create_login_url('/welcome'))
+
+class settings:
+    def GET(self):
+        goog = users.get_current_user()
+        if not goog:
+            return web.seeother(users.create_login_url('/settings'))
+
+        user = db.GqlQuery("SELECT * FROM User WHERE goog = :1", goog).get()
+        if not user:
+            return render_no_layout.settings()
+        else:
+            return render_no_layout.thanks()
 
 
+    def POST(self):
+        user = db.GqlQuery("SELECT * FROM User WHERE goog = :1", users.get_current_user()).get()
+        if not user:
+            user = User()
+            user.goog = users.get_current_user()
+            user.name = web.input().name
+            user.put() # FIXME: uniq on name
+
+        return render_no_layout.thanks()
 
 # redirects
 # pages
@@ -221,12 +252,16 @@ class extension:
         extension = db.GqlQuery("SELECT * FROM Extension WHERE mid = :1", mid)[0]
         return render.extension(extension)
 
+def getUser():
+    goog = users.get_current_user()
+    if goog:
+        return db.GqlQuery("SELECT * FROM User WHERE goog = :1", goog).get()
 
 class update:
     def GET(self):
-        user = db.GqlQuery("SELECT * FROM User WHERE goog = :1", users.get_current_user()).get()
+        user = getUser()
         if not user:
-            web.seeother('/login')
+            return web.seeother('/login')
 
         return render.user(user)
 
@@ -240,17 +275,32 @@ class update:
         if not user:
             web.ctx.status = "401 Unauthorized"
             return
+        json = simplejson.loads(web.input().data)
+
+        profile_name = "My %s" % json['system']['name']
+
+        profile = Profile.gql("WHERE user = :1 and name = :2", user, profile_name).get()
+        if not profile:
+            profile = Profile(name=profile_name, user=user)
+
+        profile.version = json['system']['version']
+        profile.os = json['system']['OS']
+        profile.platform = json['system']['name']
+        profile.put()
+
+        web.debug("profile: %s" % profile)
 
         # Build a dictionary of the user's current extensions
-        user_extensions = db.GqlQuery("SELECT * FROM UserExtension WHERE user = :1", user)
-        ux_dict = {}
-        for e in user_extensions:
-            ux_dict[e.extension.mid] = e
-        web.debug(ux_dict)
+        profile_extensions = profile.profileextension_set.fetch(100)
 
-        i = web.input()
-        json = simplejson.loads(i.data)
-        for mid in json:
+        px_dict = {}
+        for e in profile_extensions:
+            px_dict[e.extension.mid] = e
+        web.debug(px_dict)
+
+        local_extensions = json['extensions']
+        for mid in local_extensions:
+            local_extension = local_extensions[mid]
             web.debug("processing " + mid)
             key = db.Key.from_path('Extension', mid)
             extension = Extension.get(key)
@@ -258,25 +308,27 @@ class update:
                 web.debug("new extension: " + mid)
                 extension = Extension(key_name=mid)
                 extension.mid = mid
-                extension.name = json[mid]['name']
-                extension.icon_url = json[mid]['icon']
+                extension.name = local_extension['name']
+                extension.icon_url = local_extension['icon']
                 extension.put()
-            if ux_dict.has_key(mid):
+            if px_dict.has_key(mid):
                 web.debug("user had extension " + mid)
-                ux_dict[mid].version = json[mid]['version']
-                ux_dict[mid].put()
-                del ux_dict[mid]
+                px_dict[mid].version = local_extension['version']
+                px_dict[mid].put()
+                del px_dict[mid]
             else:
                 web.debug("user did not have extension " + mid)
-                ux = UserExtension()
-                ux.extension = extension
-                ux.version = json[mid]['version']
-                ux.user = user
-                ux.put()
+                px = ProfileExtension()
+                px.extension = extension
+                px.version = local_extension['version']
+                px.user = user
+                px.profile = profile
+                px.put()
+
         # Delete any user extensions from the database that weren't in the update
-        for ux in ux_dict:
+        for px in px_dict:
             web.debug("user no longer has extension " + mid)
-            ux_dict[ux].delete()
+            px_dict[px].delete()
         web.ctx.status = "200 OK"
         return
 
