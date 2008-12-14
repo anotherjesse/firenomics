@@ -1,8 +1,17 @@
 $def with (user)
 $var title: $user.name
 
+<img src="$user.gravatar(80)" style="float :left; padding: 10px" />
 <h1>$user.name</h1>
-<ul>
-$for ux in user.userextension_set:
-    <li><a href="/extensions/$ux.extension.mid">$ux.extension.name</a> $ux.extension.userextension_set.count()</li>
-</ul>
+
+<div class="clear"></div>
+
+<div id="myprofiles">
+$for profile in user.profile_set:
+    <h3 class="$profile.platform">$profile.name <em>$profile.version on $profile.os</em></h3>
+    <ul>
+    $for ux in profile.profileextension_set:
+        <li><a href="/extensions/$ux.extension.mid">$ux.extension.name</a> <em>$ux.version</em></li>
+    </ul>
+
+</div>

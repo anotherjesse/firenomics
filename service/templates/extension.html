@@ -4,7 +4,7 @@ $var title: $extension.name
 <h1>$extension.name</h1>
 
 <p>Users:</p>
-<ul>
-$for ux in extension.userextension_set:
-    <li><a href="/users/$ux.user.name">$ux.user.name</a></li>
-</ul>
+
+$for ux in extension.profileextension_set:
+    <a href="/users/$ux.user.name" title="$ux.user.name"><img src="$ux.user.gravatar(40)" /></a>
+
