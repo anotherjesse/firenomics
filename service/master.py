@@ -281,12 +281,14 @@ class update:
         json = simplejson.loads(web.input().data)
 
         if key and key != '':
+            send_welcome = False
             profile = Profile.get(db.Key.from_path('Profile', key))
             # FIXME: check if signature matches
             # web.ctx.status = "401 Unauthorized"
             # return
 
         else:
+            send_welcome = True
             profile = Profile()
             # FIXME: return the key/secret on success
 
@@ -338,7 +340,10 @@ class update:
         web.debug("profile key: %s" % profile.key())
 
         web.ctx.status = "200 OK"
-        return # FIXME return status/key/secret...
+        if send_welcome:
+            return simplejson.dumps({'profile': str(profile.key()), 'secret': profile.secret })
+        else:
+            return
 
 
 class redirect:
