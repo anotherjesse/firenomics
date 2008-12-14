@@ -30,7 +30,7 @@ urls = (
   '/settings', 'settings',
   '/extensions', 'extensions',
   '/extensions/(.*)', 'extension',
-  '/profiles/(.*)', 'profile',
+  '/profile/(.*)', 'profile',
   '/update', 'update',
   '/update/(.*)', 'update',
   '(.*)', 'page',

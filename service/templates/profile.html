@@ -2,6 +2,12 @@ $def with (profile)
 $var title: Profile
 
 <h3 class="$profile.platform">$profile.name <em>$profile.version on $profile.os</em></h3>
+<form>
+  <input id="fnProfileSecret" type="text" style="visibility: hidden" />
+</form>
+<div id="fnClaimProfile" style="visibility: hidden">
+  This is where the stuff will go.
+</div>
 <ul>
 $for ux in profile.profileextension_set:
     <li><a href="/extensions/$ux.extension.mid">$ux.extension.name</a> <em>$ux.version</em></li>
