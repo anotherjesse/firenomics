@@ -1,3 +1,5 @@
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+
 function firenomicsSubmit() {
   const appInfo = Cc["@mozilla.org/xre/app-info;1"]
     .getService(Ci.nsIXULAppInfo);
@@ -15,38 +17,32 @@ function firenomicsSubmit() {
     var ds = extMgr.datasource;
     ds.QueryInterface(Ci.nsIRDFDataSource);
 
-    // Get list of incompatibles add-ons
+    // Get list of incompatible add-ons
     var incompatibles = {};
 
-    const TYPE_EXTENSION = 2; // this is defined in nsIUpdateItem
-
-    try {
-      // Firefox 3
-      var results = extMgr.getIncompatibleItemList(null, null, null, TYPE_EXTENSION, true, {});
-    }
-    catch(e) {
-      // Firefox 2 and below
-      var results = extMgr.getIncompatibleItemList(null, null, TYPE_EXTENSION, true, {});
-    }
+    var results =
+      extMgr.getIncompatibleItemList(null, null, null,
+                                     Ci.nsIUpdateItem.TYPE_EXTENSION,
+                                     true, {});
 
     for (var i = 0; i < results.length; i++) {
       incompatibles[results[i].id] = true;
     }
 
     // get the list of all extensions
-    var results = extMgr.getItemList(TYPE_EXTENSION, {});
+    var results = extMgr.getItemList(Ci.nsIUpdateItem.TYPE_EXTENSION, {});
     for (var i = 0; i < results.length; i++) {
 
       var item = results[i];
       var skip = false;
 
       // check if extension is disabled
+
       var target = ds.GetTarget(RDFS.GetResource("urn:mozilla:item:" + item.id),
                                 RDFS.GetResource("http://www.mozilla.org/2004/em-rdf#isDisabled"),
                                 true);
 
-      if ((target instanceof Ci.nsIRDFLiteral) &&
-        (target.Value == 'true')) {
+      if ((target instanceof Ci.nsIRDFLiteral) && (target.Value == 'true')) {
         skip = true;
       }
 
@@ -59,7 +55,8 @@ function firenomicsSubmit() {
         extensions[item.id] = {
           name: item.name,
           version: item.version,
-          icon: item.iconURL
+          icon: item.iconURL,
+          updateRDF: item.updateRDF ? item.updateRDF : null
         };
       }
     }
@@ -83,9 +80,7 @@ function firenomicsSubmit() {
 
   var SUBMIT_URL = FIRENOMICS_URL + "/update";
 
-  var nsJSON = Cc["@mozilla.org/dom/json;1"]
-    .createInstance(Ci.nsIJSON);
-
+  var nsJSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
   var json = nsJSON.encode({
                              extensions: extensions(),
                              system: sysInfo()
