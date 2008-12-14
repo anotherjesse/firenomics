@@ -29,7 +29,9 @@ urls = (
   '/settings', 'settings',
   '/extensions', 'extensions',
   '/extensions/(.*)', 'extension',
+  '/profiles/(.*)', 'profile',
   '/update', 'update',
+  '/update/(.*)', 'update',
   '(.*)', 'page',
 )
 
@@ -101,6 +103,15 @@ class welcome:
             user.put() # FIXME: uniq on name
 
         return web.seeother('/')
+
+class profile:
+    def GET(self, key):
+        profile = Profile.get(key)
+        if profile:
+            return render.profile(profile)
+        else:
+            return web.seeother('/')
+
 
 class forum:
     def GET(self):
@@ -265,23 +276,21 @@ class update:
 
         return render.user(user)
 
-    def POST(self):
-        if not users.get_current_user():
-            web.ctx.status = "401 Unauthorized"
-            return
-
-        user = db.GqlQuery("SELECT * FROM User WHERE goog = :1", users.get_current_user()).get()
-
-        if not user:
-            web.ctx.status = "401 Unauthorized"
-            return
+    def POST(self, key=None):
+        web.debug("hi")
         json = simplejson.loads(web.input().data)
 
-        profile_name = "My %s" % json['system']['name']
+        if key and key != '':
+            send_welcome = False
+            profile = Profile.get(db.Key.from_path('Profile', key))
+            # FIXME: check if signature matches
+            # web.ctx.status = "401 Unauthorized"
+            # return
 
-        profile = Profile.gql("WHERE user = :1 and name = :2", user, profile_name).get()
-        if not profile:
-            profile = Profile(name=profile_name, user=user)
+        else:
+            send_welcome = True
+            profile = Profile()
+            # FIXME: return the key/secret on success
 
         profile.version = json['system']['version']
         profile.os = json['system']['OS']
@@ -290,7 +299,7 @@ class update:
 
         web.debug("profile: %s" % profile)
 
-        # Build a dictionary of the user's current extensions
+        # Build a dictionary of the current extensions
         profile_extensions = profile.profileextension_set.fetch(100)
 
         px_dict = {}
@@ -309,7 +318,6 @@ class update:
                 extension = Extension(key_name=mid)
                 extension.mid = mid
                 extension.name = local_extension['name']
-                extension.icon_url = local_extension['icon']
                 extension.put()
             if px_dict.has_key(mid):
                 web.debug("user had extension " + mid)
@@ -321,7 +329,6 @@ class update:
                 px = ProfileExtension()
                 px.extension = extension
                 px.version = local_extension['version']
-                px.user = user
                 px.profile = profile
                 px.put()
 
@@ -329,8 +336,14 @@ class update:
         for px in px_dict:
             web.debug("user no longer has extension " + mid)
             px_dict[px].delete()
+
+        web.debug("profile key: %s" % profile.key())
+
         web.ctx.status = "200 OK"
-        return
+        if send_welcome:
+            return simplejson.dumps({'profile': str(profile.key()), 'secret': profile.secret })
+        else:
+            return
 
 
 class redirect:

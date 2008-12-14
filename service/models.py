@@ -114,6 +114,7 @@ class Extension(db.Model, NiceDates):
 
 
 class Profile(db.Model):
+    secret = db.StringProperty()
     name = db.StringProperty()
     os = db.StringProperty()
     version = db.StringProperty()
