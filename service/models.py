@@ -106,12 +106,13 @@ class Comment(db.Model, Gravatar, NiceDates, Anchor):
 class User(db.Model, GravatarUser):
     name = db.StringProperty()
     goog = db.UserProperty()
+    timestamp = db.DateTimeProperty(auto_now=True)
 
 class Extension(db.Model, NiceDates):
     mid = db.StringProperty()
     name = db.StringProperty()
     icon_url = db.StringProperty()
-
+    timestamp = db.DateTimeProperty(auto_now=True)
 
 class Profile(db.Model):
     secret = db.StringProperty()
@@ -120,10 +121,12 @@ class Profile(db.Model):
     version = db.StringProperty()
     user = db.Reference(User)
     platform = db.StringProperty()
+    timestamp = db.DateTimeProperty(auto_now=True)
 
 class ProfileExtension(db.Model, NiceDates):
     extension = db.Reference(Extension)
     profile = db.Reference(Profile)
     user = db.Reference(User)
     version = db.StringProperty()
+    timestamp = db.DateTimeProperty(auto_now=True)
 
