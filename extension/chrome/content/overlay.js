@@ -1,4 +1,4 @@
-FIRENOMICS_URL = "http://firenomics.appspot.com"
+FIRENOMICS_URL = "http://localhost:8080"
 
 function fnLoad() {
   var appcontent = window.document.getElementById("appcontent");
@@ -20,12 +20,15 @@ function fnInit(event) {
 }
 
 function fnGotoProfilePage() {
-  alert('going to profile page');
   openUILinkIn(FIRENOMICS_URL + "/profile/foo", "tab");
 }
 
-function fnRenderProfilePage(win) {
+function fnRenderProfilePage(doc) {
   alert('rendering profile page');
+  input = doc.getElementById('fnProfileSecret');
+  input.value = '1234';
+  div = doc.getElementById('fnClaimProfile');
+  div.style.visibility = 'visible';
 }
 
 fnLoad();
