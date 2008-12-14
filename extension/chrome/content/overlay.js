@@ -1,4 +1,4 @@
-FIRENOMICS_URL = "http://localhost:8080"
+Components.utils.import("resource://firenomics/reporter.js");
 
 function fnLoad() {
   var appcontent = window.document.getElementById("appcontent");
@@ -11,16 +11,16 @@ function fnLoad() {
 }
 
 function fnInit(event) {
-	var win = new XPCNativeWrapper(event.originalTarget, "top");
-	
-	if (win.location.href.match(FIRENOMICS_URL + "/profile")) {
-		fnRenderProfilePage(win);
-		return;
-	}
+  var win = new XPCNativeWrapper(event.originalTarget, "top");
+
+  if (win.location.href.match(FFirenomicsReporter.FIRENOMICS_URL + "/profile")) {
+    fnRenderProfilePage(win);
+    return;
+  }
 }
 
 function fnGotoProfilePage() {
-  openUILinkIn(FIRENOMICS_URL + "/profile/foo", "tab");
+  openUILinkIn(FirenomicsReporter.FIRENOMICS_URL + "/profile/1234", "tab");
 }
 
 function fnRenderProfilePage(doc) {
@@ -29,6 +29,11 @@ function fnRenderProfilePage(doc) {
   input.value = '1234';
   div = doc.getElementById('fnClaimProfile');
   div.style.visibility = 'visible';
+}
+
+function fnSubmit() {
+  alert('submitting stuffs');
+  FirenomicsReporter.submit();
 }
 
 fnLoad();
