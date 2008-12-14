@@ -1,3 +1,5 @@
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+
 function firenomicsSubmit() {
   const appInfo = Cc["@mozilla.org/xre/app-info;1"]
     .getService(Ci.nsIXULAppInfo);
@@ -15,26 +17,20 @@ function firenomicsSubmit() {
     var ds = extMgr.datasource;
     ds.QueryInterface(Ci.nsIRDFDataSource);
 
-    // Get list of incompatibles add-ons
+    // Get list of incompatible add-ons
     var incompatibles = {};
 
-    const TYPE_EXTENSION = 2; // this is defined in nsIUpdateItem
-
-    try {
-      // Firefox 3
-      var results = extMgr.getIncompatibleItemList(null, null, null, TYPE_EXTENSION, true, {});
-    }
-    catch(e) {
-      // Firefox 2 and below
-      var results = extMgr.getIncompatibleItemList(null, null, TYPE_EXTENSION, true, {});
-    }
+    var results =
+      extMgr.getIncompatibleItemList(null, null, null,
+                                     Ci.nsIUpdateItem.TYPE_EXTENSION,
+                                     true, {});
 
     for (var i = 0; i < results.length; i++) {
       incompatibles[results[i].id] = true;
     }
 
     // get the list of all extensions
-    var results = extMgr.getItemList(TYPE_EXTENSION, {});
+    var results = extMgr.getItemList(Ci.nsIUpdateItem.TYPE_EXTENSION, {});
     for (var i = 0; i < results.length; i++) {
 
       var item = results[i];
@@ -46,8 +42,7 @@ function firenomicsSubmit() {
                                 RDFS.GetResource("http://www.mozilla.org/2004/em-rdf#isDisabled"),
                                 true);
 
-      if ((target instanceof Ci.nsIRDFLiteral) &&
-        (target.Value == 'true')) {
+      if ((target instanceof Ci.nsIRDFLiteral) && (target.Value == 'true')) {
         skip = true;
       }
 
@@ -60,7 +55,8 @@ function firenomicsSubmit() {
         extensions[item.id] = {
           name: item.name,
           version: item.version,
-          icon: item.iconURL
+          icon: item.iconURL,
+          updateRDF: item.updateRDF ? item.updateRDF : null
         };
       }
     }
@@ -82,12 +78,9 @@ function firenomicsSubmit() {
 
   }
 
-  var SUBMIT_URL = "http://firenomics.appspot.com/update";
-//  var SUBMIT_URL = "http://localhost:8080/update";
+  var SUBMIT_URL = FIRENOMICS_URL + "/update";
 
-  var nsJSON = Cc["@mozilla.org/dom/json;1"]
-    .createInstance(Ci.nsIJSON);
-
+  var nsJSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
   var json = nsJSON.encode({
                              extensions: extensions(),
                              system: sysInfo()
@@ -114,3 +107,98 @@ function firenomicsSubmit() {
     }
   };
 }
+
+function getIcon(iconURL, callback) {
+  var ios = Cc['@mozilla.org/network/io-service;1']
+            .getService(Ci.nsIIOService);
+  var chan = ios.newChannel(iconURL, null, null);
+  var listener = new IconLoadListener(iconURL, chan, callback);
+  chan.notificationCallbacks = listener;
+  chan.asyncOpen(listener, null);
+}
+
+function IconLoadListener(iconURL, channel, callback) {
+  this._iconURL = iconURL;
+  this._channel = channel;
+  this._callback = callback;
+  this._bytes = [];
+  this._bytesRead = 0;
+}
+
+IconLoadListener.prototype = {
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIInterfaceRequestor,
+                                         Ci.nsIRequestObserver,
+                                         Ci.nsIChannelEventSink,
+                                         Ci.nsIProgressEventSink,
+                                         Ci.nsIStreamListener]),
+
+  // nsIInterfaceRequestor
+  getInterface: function (iid) {
+    try {
+      return this.QueryInterface(iid);
+    } catch (e) {
+      throw Cr.NS_NOINTERFACE;
+    }
+  },
+
+  // nsIRequestObserver
+  onStartRequest: function (aRequest, aContext) {
+    this._stream = Cc['@mozilla.org/binaryinputstream;1']
+                   .createInstance(Ci.nsIBinaryInputStream);
+  },
+
+  onStopRequest: function (aRequest, aContext, aStatusCode) {
+    if (Components.isSuccessCode(aStatusCode) && this._bytesRead > 0) {
+      var dataURL;
+      
+      var mimeType = null;
+
+      var catMgr = Cc["@mozilla.org/categorymanager;1"]
+                   .getService(Ci.nsICategoryManager);
+      var sniffers = catMgr.enumerateCategory("content-sniffing-services");
+      while (mimeType == null && sniffers.hasMoreElements()) {
+        var snifferCID = sniffers.getNext().QueryInterface(Ci.nsISupportsCString).toString();
+        var sniffer = Cc[snifferCID].getService(Ci.nsIContentSniffer);
+
+        try {
+          mimeType = sniffer.getMIMETypeFromContent(aRequest, this._bytes, this._bytesRead);
+        } catch (ex) {
+          mimeType = null;
+          // ignore
+        }
+      }
+
+      if (this._bytes && this._bytesRead > 0 && mimeType != null) {
+        var data = 'data:';
+        data += mimeType;
+        data += ';base64,';
+
+        var iconData = String.fromCharCode.apply(null, this._bytes);
+        data += btoa(iconData);
+
+        this._callback.result(this._iconURL, data);
+      }
+    }
+
+    this._channel = null;
+  },
+
+  onDataAvailable: function (aRequest, aContext, aInputStream, aOffset, aCount) {
+    // we could get a different aInputStream, so we don't save this;
+    // it's unlikely we'll get more than one onDataAvailable for a
+    // favicon anyway
+    this._stream.setInputStream(aInputStream);
+
+    var chunk = this._stream.readByteArray(aCount);
+    this._bytes = this._bytes.concat(chunk);
+    this._bytesRead += aCount;
+  },
+
+  // nsIChannelEventSink
+  onChannelRedirect: function (aOldChannel, aNewChannel, aFlags) {
+    this._channel = aNewChannel;
+  },
+
+  onProgress: function (aRequest, aContext, aProgress, aProgressMax) { },
+  onStatus: function (aRequest, aContext, aStatus, aStatusArg) { }
+};
