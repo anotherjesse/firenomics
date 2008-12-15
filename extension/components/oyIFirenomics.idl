@@ -1,0 +1,30 @@
+/*
+ * Copyright 2008 Jesse Andrews and Manish Singh
+ *  
+ * This file may be used under the terms of of the
+ * GNU General Public License Version 2 or later (the "GPL"),
+ * http://www.gnu.org/licenses/gpl.html
+ *  
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ */
+
+#include "nsISupports.idl"
+
+[scriptable, uuid(fbca8218-ea2f-4f19-bc17-b9d1a82c6904)]
+interface oyIFirenomicsUser : nsISupports {
+  readonly attribute AString key;
+  readonly attribute AString secret;
+};
+
+[scriptable, uuid(167c3d63-f8a8-4682-9c3e-adb12da2ff71)]
+interface oyIFirenomics : nsISupports {
+  void submit();
+
+  oyIFirenomicsUser getUser();
+  void clearAuth();
+
+  readonly attribute AString FIRENOMICS_URL;
+};

@@ -1,3 +1,20 @@
+/*
+ * Copyright 2008 Jesse Andrews and Manish Singh
+ *
+ * This file may be used under the terms of of the
+ * GNU General Public License Version 2 or later (the "GPL"),
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ */
+
+const FN_CONTRACTID = '@oy/firenomics;1';
+const FN_CLASSID = Components.ID('{8a7d1888-cd30-470b-9a79-51d807d58bdf}');
+const FN_CLASSNAME = 'Firenomics Service';
+
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cr = Components.results;
@@ -5,46 +22,79 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
-var EXPORTED_SYMBOLS = ["FirenomicsReporter", "FIRENOMICS_URL"];
-
 //const FIRENOMICS_URL = "http://firenomics.appspot.com";
 const FIRENOMICS_URL = "http://localhost:8080";
 
-const ios = Cc["@mozilla.org/network/io-service;1"]
-  .getService(Ci.nsIIOService);
-const appInfo = Cc["@mozilla.org/xre/app-info;1"]
-  .getService(Ci.nsIXULAppInfo);
-const runtime = Cc["@mozilla.org/xre/app-info;1"]
-  .getService(Ci.nsIXULRuntime);
-const extMgr = Cc["@mozilla.org/extensions/manager;1"]
-  .getService(Ci.nsIExtensionManager);
-const RDFS = Cc['@mozilla.org/rdf/rdf-service;1']
-  .getService(Ci.nsIRDFService);
 
-function Namespace(ns) { return function(arg) { return RDFS.GetResource(ns + arg); } }
+function getObserverService() {
+  return Cc['@mozilla.org/observer-service;1']
+    .getService(Ci.nsIObserverService);
+}
 
-const EMRDF = Namespace('http://www.mozilla.org/2004/em-rdf#');
 
-const isDisabledRes = EMRDF('isDisabled');
-const hiddenRes = EMRDF('hidden');
+function Firenomics() {
+  const appInfo = Cc["@mozilla.org/xre/app-info;1"]
+    .getService(Ci.nsIXULAppInfo)
+    .QueryInterface(Ci.nsIXULRuntime);
 
-const sysInfo = {
-  ID: appInfo.ID,
-  vendor: appInfo.vendor,
-  name: appInfo.name,
-  version: appInfo.version,
-  appBuildID: appInfo.appBuildID,
-  platformVersion: appInfo.platformVersion,
-  platformBuildID: appInfo.platformBuildID,
-  OS: runtime.OS
-};
+  this._sysInfo = {
+    ID: appInfo.ID,
+    vendor: appInfo.vendor,
+    name: appInfo.name,
+    version: appInfo.version,
+    appBuildID: appInfo.appBuildID,
+    platformVersion: appInfo.platformVersion,
+    platformBuildID: appInfo.platformBuildID,
+    OS: appInfo.OS
+  };
 
-var FirenomicsReporter = {
+  var obs = getObserverService();
+  obs.addObserver(this, 'final-ui-startup', false);
+}
+
+Firenomics.prototype = {
+  FIRENOMICS_URL: FIRENOMICS_URL,
+
+  _init: function FN__init() {
+    var tm = Cc["@mozilla.org/updates/timer-manager;1"]
+      .getService(Ci.nsIUpdateTimerManager);
+    tm.registerTimer("background-firenomics-timer", this, 86400);
+  },
+
+  notify: function FN_notify(timer) {
+    this.submit();
+  },
+
+  observe: function FN_observe(subject, topic, state) {
+    var obs = getObserverService();
+
+    switch (topic) {
+      case 'final-ui-startup':
+        obs.removeObserver(this, 'final-ui-startup');
+        this._init();
+        this.submit();
+        break;
+    }
+  },
+
   _extensions: function FR__extensions() {
     var extensions = {};
 
-    var ds = extMgr.datasource;
-    ds.QueryInterface(Ci.nsIRDFDataSource);
+    const ios = Cc["@mozilla.org/network/io-service;1"]
+      .getService(Ci.nsIIOService);
+    const extMgr = Cc["@mozilla.org/extensions/manager;1"]
+      .getService(Ci.nsIExtensionManager);
+    const RDFS = Cc['@mozilla.org/rdf/rdf-service;1']
+      .getService(Ci.nsIRDFService);
+
+    function Namespace(ns) { return function(arg) RDFS.GetResource(ns + arg) }
+
+    const EMRDF = Namespace('http://www.mozilla.org/2004/em-rdf#');
+
+    const isDisabledRes = EMRDF('isDisabled');
+    const hiddenRes = EMRDF('hidden');
+
+    var ds = extMgr.datasource.QueryInterface(Ci.nsIRDFDataSource);
 
     // Get list of incompatible add-ons
     var incompatibles = {};
@@ -135,7 +185,7 @@ var FirenomicsReporter = {
   submit: function FR_submit() {
     var nsJSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
     var json = nsJSON.encode({ extensions: this._extensions(),
-                               system: sysInfo });
+                               system: this._sysInfo });
 
     var postBody = "data=" + encodeURIComponent(json);
 
@@ -149,14 +199,37 @@ var FirenomicsReporter = {
           var user = nsJSON.decode(req.responseText);
           auth.set(user.profile, user.secret);
         }
-        openUILinkIn('http://firenomics.appspot.com/home', 'tab');
+        //openUILinkIn('http://firenomics.appspot.com/home', 'tab');
       }
     };
 
     req.open("POST", FIRENOMICS_URL + "/update");
     req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     req.send(postBody);
-  }
+  },
+
+  getUser: function FN_getUser() {
+    return auth.get();
+  },
+  clearAuth: function FN_clearAuth() {
+    auth.clear();
+  },
+
+  getInterfaces: function FN_getInterfaces(countRef) {
+    var interfaces = [Ci.oyIFirenomics, Ci.nsITimerCallback, Ci.nsIObserver,
+                      Ci.nsISupports];
+    countRef.value = interfaces.length;
+    return interfaces;
+  },
+  getHelperForLanguage: function FN_getHelperForLanguage(language) null,
+  contractID: FN_CONTRACTID,
+  classDescription: FN_CLASSNAME,
+  classID: FN_CLASSID,
+  implementationLanguage: Ci.nsIProgrammingLanguage.JAVASCRIPT,
+  flags: Ci.nsIClassInfo.SINGLETON,
+  _xpcom_categories: [{ category: 'app-startup', service: true }],
+  QueryInterface: XPCOMUtils.generateQI([Ci.oyIFirenomics, Ci.nsITimerCallback,
+                                         Ci.nsIObserver, Ci.nsIClassInfo])
 }
 
 function getIcon(iconURL, callback) {
@@ -294,4 +367,5 @@ var auth = {
   }
 };
 
-FirenomicsReporter.auth = auth;
+function NSGetModule(compMgr, fileSpec)
+  XPCOMUtils.generateModule([Firenomics]);

@@ -1,11 +1,11 @@
-Components.utils.import("resource://firenomics/reporter.js");
-
 var Firenomics = (function() {
+  var reporter = Cc['@oy/firenomics;1'].getService(Ci.oyIFirenomics);
+
   var self = this;
 
   var load = function() {
     // TODO: get rid of this!!!
-    //FirenomicsReporter.auth.clear();
+    //reporter.clearAuth();
     var appcontent = window.document.getElementById("appcontent");
     if (appcontent) {
       if (!appcontent.firenomicsInited) {
@@ -18,18 +18,18 @@ var Firenomics = (function() {
   var init = function(event) {
     var win = new XPCNativeWrapper(event.originalTarget, "top");
 
-    if (win.location.href.match(FIRENOMICS_URL + "/profile")) {
+    if (win.location.href.match(reporter.FIRENOMICS_URL + "/profile")) {
       renderProfilePage(win);
     }
   }
 
   self.gotoProfilePage = function() {
-    user = FirenomicsReporter.auth.get();
-    openUILinkIn(FIRENOMICS_URL + "/profile/" + user.key, "tab");
+    user = reporter.getUser();
+    openUILinkIn(reporter.FIRENOMICS_URL + "/profile/" + user.key, "tab");
   }
 
   var renderProfilePage = function(doc) {
-    var user = FirenomicsReporter.auth.get();
+    var user = reporter.getUser();
     if (doc.location.href.match(user.key)) {
       input = doc.getElementById('fnProfileNonce');
       response = doc.getElementById('fnProfileResponse');
@@ -44,7 +44,7 @@ var Firenomics = (function() {
   }
 
   self.submit = function() {
-    FirenomicsReporter.submit();
+    reporter.submit();
   }
 
   const CC = Components.classes;
