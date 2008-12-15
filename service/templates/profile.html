@@ -1,4 +1,4 @@
-$def with (profile, nonce)
+$def with (profile, nonce, goog)
 $var title: Profile
 <div class="center_content">
   <div class="left_content">
@@ -22,11 +22,14 @@ $var title: Profile
           <h3>Claim your profile!</h3>
           <p>If you want to share this profile publicly you can claim it.</p>
           <p>Public profiles allow you to comment on your list, a widget you can embed on your blog, ...</p>
-          <form method="POST">
-            <input id="fnProfileNonce" name="challenge" type="text" style="visibility: hidden" value="$nonce" />
-            <input id="fnProfileResponse" name="response" type="text" style="visibility: hidden" value="" />
-            <input id="fnSubmit" type="submit" value="Claim" />
-          </form>
+            <form method="POST">
+              <input id="fnProfileNonce" name="challenge" type="text" style="visibility: hidden" value="$nonce" />
+              <input id="fnProfileResponse" name="response" type="text" style="visibility: hidden" value="" />
+              $if goog:
+                  <input id="fnSubmit" type="submit" value="Claim" />
+            </form>
+          $if not goog:
+              <a href="?login=true">Login to your google account to start the process.</a>
         </div>
     $if profile.user:
         <div class="about">

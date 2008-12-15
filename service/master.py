@@ -8,6 +8,7 @@ import sanitize
 import simplejson
 import uuid
 import md5
+import re
 
 PUB = 'FIXME'
 
@@ -58,7 +59,7 @@ class logout:
 
 class login:
     def GET(self):
-        return web.seeother(users.create_login_url('/welcome'))
+         return web.seeother(users.create_login_url('/welcome'))
 
 class settings:
     def GET(self):
@@ -72,19 +73,6 @@ class settings:
         else:
             return render_no_layout.thanks()
 
-
-    def POST(self):
-        user = db.GqlQuery("SELECT * FROM User WHERE goog = :1", users.get_current_user()).get()
-        if not user:
-            valid_name_regexp = r"[a-z]+[a-z_0-9]+"
-            if not valid_user_regexp.match(web.input().name):
-                return web.seeother('/')
-            user = User(key_name=name)
-            user.goog = users.get_current_user()
-            user.name = web.input().name
-            user.put()
-
-        return render_no_layout.thanks()
 
 # redirects
 # pages
@@ -102,23 +90,40 @@ class welcome:
     def POST(self):
         user = db.GqlQuery("SELECT * FROM User WHERE goog = :1", users.get_current_user()).get()
         if not user:
-            user = User()
+            valid_name_regexp = re.compile(r"[a-z]+[a-z_0-9]+")
+            if not valid_name_regexp.match(web.input().name):
+                return web.seeother('/welcome')
+            user = User(key_name=web.input().name)
             user.goog = users.get_current_user()
             user.name = web.input().name
-            user.put() # FIXME: uniq on name
+            if user.put():
+                return web.seeother("/users/%s" % user.name)
+            else:
+                return web.seeother('/welcome')
 
-        return web.seeother('/')
+        return web.seeother("/users/%s" % user.name)
 
 class profile:
     def GET(self, key):
+        web.debug(str(dir(web)))
+        try:
+            if web.input().login:
+                return web.seeother(users.create_login_url("/welcome?profile=%s" % key))
+        except:
+            pass
         profile = Profile.get(key)
         nonce = uuid.uuid4().hex
+        goog = users.get_current_user()
         if profile:
-            return render.profile(profile, nonce)
+            return render.profile(profile, nonce, goog)
         else:
             return web.seeother('/')
 
     def POST(self, key):
+        goog = users.get_current_user()
+        if not goog:
+            return web.seeother('/')
+
         profile = Profile.get(key)
         if not profile:
             web.debug("no such profile")
@@ -128,9 +133,12 @@ class profile:
         secret = profile.secret
         expected_response = md5.new(challenge + secret).hexdigest()
         web.debug("response = " + response + ", expected = " + expected_response)
-        if expected_response == response:
-            # own the profile
+        user = db.GqlQuery("SELECT * FROM User WHERE goog = :1", goog).get()
+        if (expected_response == response) and user:
             web.debug("own the profile")
+            profile.user = user
+            profile.put()
+            return web.seeother("/users/%s" % user.name)
         else:
             web.debug("unauthorized")
             web.ctx.status = "401 unauthorized"
