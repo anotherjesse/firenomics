@@ -558,48 +558,44 @@ color:#afaeaf;
 }
 
 
-#myprofiles
-{
-  padding-left: 20px
-}
-
-#myprofiles h3
+h3.profile
 {
   padding-left: 60px;
   line-height: 25px;
+  min-height: 50px;
 }
 
-#myprofiles ul
+.profile ul
 {
   list-style: none;
   font-size: 1.2em;
   padding-bottom: 20px;
 }
 
-#myprofiles ul em
+.profile ul em
 {
   color: #666;
   font-size: 0.8em;
 }
 
-#myprofiles h3 em
+h3.profile em
 {
   display: block;
   font-size: 0.8em;
   color: #888;
 }
 
-#myprofiles h3.Firefox
+h3.Firefox.profile
 {
   background: url(/static/logos/firefox.png) no-repeat top left;
 }
 
-#myprofiles h3.Songbird
+h3.Songbird.profile
 {
   background: url(/static/logos/songbird.png) no-repeat top left;
 }
 
-#myprofiles h3.Flock
+h3.Flock.profile
 {
   background: url(/static/logos/flock.png) no-repeat top left;
 }
