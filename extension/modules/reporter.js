@@ -10,6 +10,8 @@ var EXPORTED_SYMBOLS = ["FirenomicsReporter", "FIRENOMICS_URL"];
 //const FIRENOMICS_URL = "http://firenomics.appspot.com";
 const FIRENOMICS_URL = "http://localhost:8080";
 
+const ios = Cc["@mozilla.org/network/io-service;1"]
+  .getService(Ci.nsIIOService);
 const appInfo = Cc["@mozilla.org/xre/app-info;1"]
   .getService(Ci.nsIXULAppInfo);
 const runtime = Cc["@mozilla.org/xre/app-info;1"]
@@ -19,10 +21,12 @@ const extMgr = Cc["@mozilla.org/extensions/manager;1"]
 const RDFS = Cc['@mozilla.org/rdf/rdf-service;1']
   .getService(Ci.nsIRDFService);
 
-const isDisabledRes =
-  RDFS.GetResource("http://www.mozilla.org/2004/em-rdf#isDisabled");
-const hiddenRes =
-  RDFS.GetResource("http://www.mozilla.org/2004/em-rdf#hidden");
+function Namespace(ns) { return function(arg) { return RDFS.GetResource(ns + arg); } }
+
+const EMRDF = Namespace('http://www.mozilla.org/2004/em-rdf#');
+
+const isDisabledRes = EMRDF('isDisabled');
+const hiddenRes = EMRDF('hidden');
 
 const sysInfo = {
   ID: appInfo.ID,
@@ -61,10 +65,10 @@ var FirenomicsReporter = {
       var skip = false;
 
       // check if extension is disabled or hidden
-      var res = RDFS.GetResource("urn:mozilla:item:" + item.id);
+      var extRes = RDFS.GetResource("urn:mozilla:item:" + item.id);
 
       function trueValue(prop) {
-        var target = ds.GetTarget(res, prop, true);
+        var target = ds.GetTarget(extRes, prop, true);
         return (target instanceof Ci.nsIRDFLiteral) &&
                (target.Value == 'true');
       }
@@ -79,11 +83,48 @@ var FirenomicsReporter = {
       }
 
       if (!skip) {
+        function getRDFValue(name) {
+          var val = ds.GetTarget(extRes, EMRDF(name), true);
+          return val ? val.QueryInterface(Ci.nsIRDFLiteral).Value : null;
+        }
+
+        var homepageURL = getRDFValue('homepageURL');
+        if (homepageURL) {
+          // only allow http(s) homepages
+          var scheme = "";
+          var uri = null;
+          try {
+            uri = ios.newURI(homepageURL, null, null);
+            scheme = uri.scheme;
+          } catch (ex) { }
+          if (uri && (scheme == "http" || scheme == "https")) {
+            homepageURL = uri.spec;
+          } else {
+            homepageURL = null;
+          }
+        }
+
+        function getNames(category) {
+          var names = [];
+          var targets = ds.GetTargets(extRes, EMRDF(category), true);
+          while (targets.hasMoreElements()) {
+            var val = targets.getNext().QueryInterface(Ci.nsIRDFLiteral).Value;
+            names.push(val);
+          }
+          return names;
+        }
+
         extensions[item.id] = {
           name: item.name,
           version: item.version,
           icon: item.iconURL,
-          updateRDF: item.updateRDF ? item.updateRDF : null
+          updateRDF: item.updateRDF ? item.updateRDF : null,
+          description: getRDFValue('description'),
+          creator: getRDFValue('creator'),
+          homepageURL: homepageURL,
+          developers: getNames('developer'),
+          translators: getNames('translator'),
+          contributors: getNames('contributor')
         };
       }
     }

@@ -321,6 +321,13 @@ class update:
                 extension = Extension(key_name=mid)
                 extension.mid = mid
                 extension.name = local_extension['name']
+                extension.updateRDF = local_extension['updateRDF']
+                extension.description = local_extension['description']
+                extension.creator = local_extension['creator']
+                extension.homepageURL = local_extension['homepageURL']
+                extension.developers = local_extension['developers']
+                extension.translators = local_extension['translators']
+                extension.contributors = local_extension['contributors']
                 extension.put()
             if px_dict.has_key(mid):
                 web.debug("user had extension " + mid)
@@ -344,6 +351,7 @@ class update:
 
         web.ctx.status = "200 OK"
         if send_welcome:
+            web.header('Content-Type', 'text/x-json')
             return simplejson.dumps({'profile': str(profile.key()), 'secret': profile.secret})
         else:
             return
