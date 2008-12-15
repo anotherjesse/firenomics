@@ -33,9 +33,10 @@ $var title: Profile
         </div>
     $if profile.user:
         <div class="about">
-          <img src="$user.gravatar(80)" style="float: right; padding: 10px" />
-          <h3><a href="$profile.user.name">$profile.user.name</h3>
+          <img src="$profile.user.gravatar(80)" style="padding-right: 10px" align="left"/>
+          <h3><a href="/users/$profile.user.name">$profile.user.name</h3>
 
+    <div class="clear"></div>
   </div><!--end of right content-->
 
   <div class="clear"></div>
