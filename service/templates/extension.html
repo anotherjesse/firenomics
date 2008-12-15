@@ -6,6 +6,14 @@ $var title: $extension.name
     <h1>$extension.name</h1>
 
     <p>$extension.description</p>
+
+    $if extension.extensionrecommendation_set.count() > 0:
+        <h3>Recommended Extensions</h3>
+        <ul>
+        $for recommendation in extension.extensionrecommendation_set.fetch(10):
+            <li><a href="$recommendation.recommended.mid">$recommendation.recommended.name</a></li>
+        </ul>
+
   </div><!--end of left content-->
 
   <div class="right_content">
@@ -14,7 +22,9 @@ $var title: $extension.name
         <a href="$extension.homepageURL">$extension.homepageURL</a>
     $if extension.creator:
         <h3>Creator</h3>
-        $extension.creator
+        <ul>
+        <li>$extension.creator</li>
+        </ul>
     $if extension.developers:
         <h3>Developers</h3>
         <ul>
