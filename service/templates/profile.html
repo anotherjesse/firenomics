@@ -1,15 +1,37 @@
 $def with (profile, nonce)
 $var title: Profile
+<div class="center_content">
+  <div class="left_content">
+    <div class="title"><span class="title_icon"><img src="/static/images/bullet1.gif" alt="" title="" /></span>Overview</div>
 
-<h3 class="$profile.platform">$profile.name <em>$profile.version on $profile.os</em></h3>
-<form method="POST">
-  <input id="fnProfileNonce" name="challenge" type="text" style="visibility: hidden" value="$nonce" />
-  <input id="fnProfileResponse" name="response" type="text" style="visibility: hidden" value="" />
-  <div id="fnClaimProfile" style="visibility: hidden">
-    <input id="fnSubmit" type="submit" value="Claim your profile!" />
-  </div>
-</form>
-<ul>
-$for ux in profile.profileextension_set:
-    <li><a href="/extensions/$ux.extension.mid">$ux.extension.name</a> <em>$ux.version</em></li>
-</ul>
+    <div class="feat_prod_box_details">
+
+      <h3 class="profile $profile.platform">$profile.platform <em>$profile.version on $profile.os</em></h3>
+      <ul>
+      $for ux in profile.profileextension_set:
+          <li><a href="/extensions/$ux.extension.mid">$ux.extension.name</a> <em>$ux.version</em></li>
+      </ul>
+
+    </div>
+    <div class="clear"></div>
+  </div><!--end of left content-->
+
+  <div class="right_content">
+    <div class="about" id="fnClaimProfile" style="visibility: hidden">
+      <h3>Claim your profile!</h3>
+      <p>If you want to share this profile publicly you can claim it.</p>
+      <p>Public profiles allow you to comment on your list, a widget you can embed on your blog, ...</p>
+      <form method="POST">
+        <input id="fnProfileNonce" name="challenge" type="text" style="visibility: hidden" value="$nonce" />
+        <input id="fnProfileResponse" name="response" type="text" style="visibility: hidden" value="" />
+        <div
+          <input id="fnSubmit" type="submit" value="Claim" />
+        </div>
+      </form>
+    </div>
+  </div><!--end of right content-->
+
+  <div class="clear"></div>
+</div><!--end of center content-->
+
+
