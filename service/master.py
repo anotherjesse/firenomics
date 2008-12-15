@@ -108,8 +108,9 @@ class welcome:
 class profile:
     def GET(self, key):
         profile = Profile.get(key)
+        nonce = '1234'
         if profile:
-            return render.profile(profile)
+            return render.profile(profile, nonce)
         else:
             return web.seeother('/')
 
@@ -343,7 +344,7 @@ class update:
 
         web.ctx.status = "200 OK"
         if send_welcome:
-            return simplejson.dumps({'profile': str(profile.key()), 'secret': profile.secret })
+            return simplejson.dumps({'profile': str(profile.key()), 'secret': profile.secret})
         else:
             return
 
