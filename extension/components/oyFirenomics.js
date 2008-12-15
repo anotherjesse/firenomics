@@ -22,8 +22,8 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
-//const FIRENOMICS_URL = "http://firenomics.appspot.com";
-const FIRENOMICS_URL = "http://localhost:8080";
+const FIRENOMICS_URL = "http://firenomics.appspot.com";
+//const FIRENOMICS_URL = "http://localhost:8080";
 
 
 function getObserverService() {

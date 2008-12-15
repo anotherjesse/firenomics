@@ -26,7 +26,7 @@ urls = (
   '(.+)/forum', 'topics',
   '(.+)/forum/new', 'newTopic',
   '(.+)/forum/([^/]*)', 'topic',
-  '/home', 'update',
+  '/home', 'home',
   '/users/(.*)', 'user',
   '/welcome', 'welcome',
   '/settings', 'settings',
@@ -85,7 +85,7 @@ class welcome:
         if not user:
             return render.welcome()
         else:
-            return web.seeother('/update')
+            return web.seeother('/home')
 
     def POST(self):
         user = db.GqlQuery("SELECT * FROM User WHERE goog = :1", users.get_current_user()).get()
@@ -300,7 +300,7 @@ def getUser():
     if goog:
         return db.GqlQuery("SELECT * FROM User WHERE goog = :1", goog).get()
 
-class update:
+class home:
     def GET(self):
         user = getUser()
         if not user:
@@ -308,6 +308,7 @@ class update:
 
         return render.user(user)
 
+class update:
     def POST(self, key=None):
         web.debug("hi")
         json = simplejson.loads(web.input().data)
