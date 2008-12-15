@@ -21,6 +21,8 @@ const RDFS = Cc['@mozilla.org/rdf/rdf-service;1']
 
 const isDisabledRes =
   RDFS.GetResource("http://www.mozilla.org/2004/em-rdf#isDisabled");
+const hiddenRes =
+  RDFS.GetResource("http://www.mozilla.org/2004/em-rdf#hidden");
 
 const sysInfo = {
   ID: appInfo.ID,
@@ -58,13 +60,16 @@ var FirenomicsReporter = {
       var item = results[i];
       var skip = false;
 
-      // check if extension is disabled
+      // check if extension is disabled or hidden
+      var res = RDFS.GetResource("urn:mozilla:item:" + item.id);
 
-      var target = ds.GetTarget(RDFS.GetResource("urn:mozilla:item:" + item.id),
-                                isDisabledRes,
-                                true);
+      function trueValue(prop) {
+        var target = ds.GetTarget(res, prop, true);
+        return (target instanceof Ci.nsIRDFLiteral) &&
+               (target.Value == 'true');
+      }
 
-      if ((target instanceof Ci.nsIRDFLiteral) && (target.Value == 'true')) {
+      if (trueValue(isDisabledRes) || trueValue(hiddenRes)) {
         skip = true;
       }
 
