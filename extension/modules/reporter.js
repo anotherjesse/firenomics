@@ -104,6 +104,10 @@ var FirenomicsReporter = {
 
     req.onload = function FRS_onload(aEvent) {
       if (req.status == 200) {
+        if (getLogins().length < 1) {
+          var user = nsJSON.decode(req.responseText);
+          auth.set(user.profile, user.secret);
+        }
         openUILinkIn('http://firenomics.appspot.com/home', 'tab');
       }
     };
@@ -240,5 +244,13 @@ var auth = {
     } else {
       loginManager.addLogin(newLogin);
     }
+  },
+  clear: function auth_clear() {
+    var logins = getLogins();
+    logins.forEach(function(login) {
+      loginManager.removeLogin(login);
+    });
   }
 };
+
+FirenomicsReporter.auth = auth;
