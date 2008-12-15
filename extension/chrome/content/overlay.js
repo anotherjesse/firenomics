@@ -31,8 +31,9 @@ var Firenomics = (function() {
   var renderProfilePage = function(doc) {
     var user = FirenomicsReporter.auth.get();
     if (doc.location.href.match(user.key)) {
-      input = doc.getElementById('fnProfileSecret');
-      input.value = sign(input.value, user.secret);
+      input = doc.getElementById('fnProfileNonce');
+      response = doc.getElementById('fnProfileResponse');
+      response.value = sign(input.value, user.secret);
       div = doc.getElementById('fnClaimProfile');
       div.style.visibility = 'visible';
     }

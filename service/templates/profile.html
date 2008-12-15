@@ -2,8 +2,9 @@ $def with (profile, nonce)
 $var title: Profile
 
 <h3 class="$profile.platform">$profile.name <em>$profile.version on $profile.os</em></h3>
-<form>
-  <input id="fnProfileSecret" type="text" style="visibility: hidden" value="$nonce" />
+<form method="POST">
+  <input id="fnProfileNonce" name="challenge" type="text" style="visibility: hidden" value="$nonce" />
+  <input id="fnProfileResponse" name="response" type="text" style="visibility: hidden" value="" />
   <div id="fnClaimProfile" style="visibility: hidden">
     <input id="fnSubmit" type="submit" value="Claim your profile!" />
   </div>

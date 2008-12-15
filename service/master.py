@@ -7,6 +7,7 @@ from utils import analytics
 import sanitize
 import simplejson
 import uuid
+import md5
 
 PUB = 'FIXME'
 
@@ -108,10 +109,28 @@ class welcome:
 class profile:
     def GET(self, key):
         profile = Profile.get(key)
-        nonce = '1234'
+        nonce = uuid.uuid4().hex
         if profile:
             return render.profile(profile, nonce)
         else:
+            return web.seeother('/')
+
+    def POST(self, key):
+        profile = Profile.get(key)
+        if not profile:
+            web.debug("no such profile")
+            return web.seeother('/')
+        challenge = web.input().challenge
+        response = web.input().response
+        secret = profile.secret
+        expected_response = md5.new(challenge + secret).hexdigest()
+        web.debug("response = " + response + ", expected = " + expected_response)
+        if expected_response == response:
+            # own the profile
+            web.debug("own the profile")
+        else:
+            web.debug("unauthorized")
+            web.ctx.status = "401 unauthorized"
             return web.seeother('/')
 
 
