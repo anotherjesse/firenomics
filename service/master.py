@@ -6,6 +6,7 @@ from models import *
 from utils import analytics
 import sanitize
 import simplejson
+import uuid
 
 PUB = 'FIXME'
 
@@ -289,7 +290,8 @@ class update:
 
         else:
             send_welcome = True
-            profile = Profile()
+            secret_uuid = uuid.uuid4()
+            profile = Profile(secret=secret_uuid.hex)
             # FIXME: return the key/secret on success
 
         profile.version = json['system']['version']
