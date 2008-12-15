@@ -10,6 +10,8 @@ handlers:
 - url: /googlehostedservice.html
   static_files: static/googlehostedservice.html
   upload: static/googlehostedservice.html
+- url: /rocket/.*
+  script: rocket/rocket.py
 - url: /robots.txt
   static_files: static/robots.txt
   upload: static/robots.txt

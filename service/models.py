@@ -106,11 +106,13 @@ class Comment(db.Model, Gravatar, NiceDates, Anchor):
 class User(db.Model, GravatarUser):
     name = db.StringProperty()
     goog = db.UserProperty()
+    timestamp = db.DateTimeProperty(auto_now=True)
 
 class Extension(db.Model, NiceDates):
     mid = db.StringProperty()
     name = db.StringProperty()
     icon_url = db.StringProperty()
+    timestamp = db.DateTimeProperty(auto_now=True)
     updateRDF = db.StringProperty()
     description = db.StringProperty()
     creator = db.StringProperty()
@@ -119,7 +121,6 @@ class Extension(db.Model, NiceDates):
     translators = db.ListProperty(basestring)
     contributors = db.ListProperty(basestring)
 
-
 class Profile(db.Model):
     secret = db.StringProperty()
     name = db.StringProperty()
@@ -127,10 +128,16 @@ class Profile(db.Model):
     version = db.StringProperty()
     user = db.Reference(User)
     platform = db.StringProperty()
+    timestamp = db.DateTimeProperty(auto_now=True)
 
 class ProfileExtension(db.Model, NiceDates):
     extension = db.Reference(Extension)
     profile = db.Reference(Profile)
     user = db.Reference(User)
     version = db.StringProperty()
+    timestamp = db.DateTimeProperty(auto_now=True)
 
+class ExtensionRecommendation(db.Model):
+    recommended = db.Reference(Extension, collection_name="recommended")
+    extension = db.Reference(Extension)
+    timestamp = db.DateTimeProperty(auto_now=True)
