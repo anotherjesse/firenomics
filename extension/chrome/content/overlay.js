@@ -13,7 +13,7 @@ function fnLoad() {
 function fnInit(event) {
   var win = new XPCNativeWrapper(event.originalTarget, "top");
 
-  if (win.location.href.match(FFirenomicsReporter.FIRENOMICS_URL + "/profile")) {
+  if (win.location.href.match(FIRENOMICS_URL + "/profile")) {
     fnRenderProfilePage(win);
     return;
   }
