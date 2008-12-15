@@ -113,6 +113,13 @@ class Extension(db.Model, NiceDates):
     name = db.StringProperty()
     icon_url = db.StringProperty()
     timestamp = db.DateTimeProperty(auto_now=True)
+    updateRDF = db.StringProperty()
+    description = db.StringProperty()
+    creator = db.StringProperty()
+    homepageURL = db.StringProperty()
+    developers = db.ListProperty(basestring)
+    translators = db.ListProperty(basestring)
+    contributors = db.ListProperty(basestring)
 
 class Profile(db.Model):
     secret = db.StringProperty()
