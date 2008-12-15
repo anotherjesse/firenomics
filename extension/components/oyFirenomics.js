@@ -49,22 +49,30 @@ function Firenomics() {
   };
 
   var obs = getObserverService();
-  obs.addObserver(this, 'profile-after-change', false);
+  obs.addObserver(this, 'final-ui-startup', false);
 }
 
 Firenomics.prototype = {
   FIRENOMICS_URL: FIRENOMICS_URL,
 
   _init: function FN__init() {
+    var tm = Cc["@mozilla.org/updates/timer-manager;1"]
+      .getService(Ci.nsIUpdateTimerManager);
+    tm.registerTimer("background-firenomics-timer", this, 86400);
+  },
+
+  notify: function FN_notify(timer) {
+    this.submit();
   },
 
   observe: function FN_observe(subject, topic, state) {
     var obs = getObserverService();
 
     switch (topic) {
-      case 'profile-after-change':
-        obs.removeObserver(this, 'profile-after-change');
+      case 'final-ui-startup':
+        obs.removeObserver(this, 'final-ui-startup');
         this._init();
+        this.submit();
         break;
     }
   },
@@ -208,7 +216,8 @@ Firenomics.prototype = {
   },
 
   getInterfaces: function FN_getInterfaces(countRef) {
-    var interfaces = [Ci.oyIFirenomics, Ci.nsIObserver, Ci.nsISupports];
+    var interfaces = [Ci.oyIFirenomics, Ci.nsITimerCallback, Ci.nsIObserver,
+                      Ci.nsISupports];
     countRef.value = interfaces.length;
     return interfaces;
   },
@@ -219,8 +228,8 @@ Firenomics.prototype = {
   implementationLanguage: Ci.nsIProgrammingLanguage.JAVASCRIPT,
   flags: Ci.nsIClassInfo.SINGLETON,
   _xpcom_categories: [{ category: 'app-startup', service: true }],
-  QueryInterface: XPCOMUtils.generateQI([Ci.oyIFirenomics, Ci.nsIObserver,
-                                         Ci.nsIClassInfo])
+  QueryInterface: XPCOMUtils.generateQI([Ci.oyIFirenomics, Ci.nsITimerCallback,
+                                         Ci.nsIObserver, Ci.nsIClassInfo])
 }
 
 function getIcon(iconURL, callback) {
