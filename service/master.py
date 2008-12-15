@@ -76,10 +76,13 @@ class settings:
     def POST(self):
         user = db.GqlQuery("SELECT * FROM User WHERE goog = :1", users.get_current_user()).get()
         if not user:
-            user = User()
+            valid_name_regexp = r"[a-z]+[a-z_0-9]+"
+            if not valid_user_regexp.match(web.input().name):
+                return web.seeother('/')
+            user = User(key_name=name)
             user.goog = users.get_current_user()
             user.name = web.input().name
-            user.put() # FIXME: uniq on name
+            user.put()
 
         return render_no_layout.thanks()
 
