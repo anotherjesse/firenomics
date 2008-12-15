@@ -1,17 +1,40 @@
-Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+const Cc = Components.classes;
+const Ci = Components.interfaces;
+const Cr = Components.results;
+const Cu = Components.utils;
 
-function firenomicsSubmit() {
-  const appInfo = Cc["@mozilla.org/xre/app-info;1"]
-    .getService(Ci.nsIXULAppInfo);
-  const runtime = Cc["@mozilla.org/xre/app-info;1"]
-    .getService(Ci.nsIXULRuntime);
-  const extMgr  = Cc["@mozilla.org/extensions/manager;1"]
-    .getService(Ci.nsIExtensionManager);
-  const RDFS    = Cc['@mozilla.org/rdf/rdf-service;1']
-    .getService(Ci.nsIRDFService);
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
+var EXPORTED_SYMBOLS = ["FirenomicsReporter", "FIRENOMICS_URL"];
 
-  function extensions() {
+//const FIRENOMICS_URL = "http://firenomics.appspot.com";
+const FIRENOMICS_URL = "http://localhost:8080";
+
+const appInfo = Cc["@mozilla.org/xre/app-info;1"]
+  .getService(Ci.nsIXULAppInfo);
+const runtime = Cc["@mozilla.org/xre/app-info;1"]
+  .getService(Ci.nsIXULRuntime);
+const extMgr = Cc["@mozilla.org/extensions/manager;1"]
+  .getService(Ci.nsIExtensionManager);
+const RDFS = Cc['@mozilla.org/rdf/rdf-service;1']
+  .getService(Ci.nsIRDFService);
+
+const isDisabledRes =
+  RDFS.GetResource("http://www.mozilla.org/2004/em-rdf#isDisabled");
+
+const sysInfo = {
+  ID: appInfo.ID,
+  vendor: appInfo.vendor,
+  name: appInfo.name,
+  version: appInfo.version,
+  appBuildID: appInfo.appBuildID,
+  platformVersion: appInfo.platformVersion,
+  platformBuildID: appInfo.platformBuildID,
+  OS: runtime.OS
+};
+
+var FirenomicsReporter = {
+  _extensions: function FR__extensions() {
     var extensions = {};
 
     var ds = extMgr.datasource;
@@ -32,14 +55,13 @@ function firenomicsSubmit() {
     // get the list of all extensions
     var results = extMgr.getItemList(Ci.nsIUpdateItem.TYPE_EXTENSION, {});
     for (var i = 0; i < results.length; i++) {
-
       var item = results[i];
       var skip = false;
 
       // check if extension is disabled
 
       var target = ds.GetTarget(RDFS.GetResource("urn:mozilla:item:" + item.id),
-                                RDFS.GetResource("http://www.mozilla.org/2004/em-rdf#isDisabled"),
+                                isDisabledRes,
                                 true);
 
       if ((target instanceof Ci.nsIRDFLiteral) && (target.Value == 'true')) {
@@ -62,50 +84,29 @@ function firenomicsSubmit() {
     }
 
     return extensions;
-  }
+  },
 
-  function sysInfo() {
-    return {
-      ID: appInfo.ID,
-      vendor: appInfo.vendor,
-      name: appInfo.name,
-      version: appInfo.version,
-      appBuildID: appInfo.appBuildID,
-      platformVersion: appInfo.platformVersion,
-      platformBuildID: appInfo.platformBuildID,
-      OS: runtime.OS
-    };
+  submit: function FR_submit() {
+    var nsJSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
+    var json = nsJSON.encode({ extensions: this._extensions(),
+                               system: sysInfo });
 
-  }
+    var postBody = "data=" + encodeURIComponent(json);
 
-  var SUBMIT_URL = FIRENOMICS_URL + "/update";
+    var req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
+      .createInstance(Ci.nsIXMLHttpRequest);
+    req.mozBackgroundRequest = true;
 
-  var nsJSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
-  var json = nsJSON.encode({
-                             extensions: extensions(),
-                             system: sysInfo()
-                           });
-
-  var postBody = "data=" + encodeURIComponent(json);
-
-  var req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
-    .createInstance(Ci.nsIXMLHttpRequest);
-  req.mozBackgroundRequest = true;
-  req.open("POST", SUBMIT_URL);
-  req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-  req.send(postBody);
-  req.onreadystatechange = function() {
-    if (req.readyState == 4) {
-      if (req.status == 401) {
-        window.openDialog("chrome://firenomics/content/auth.xul",
-                          "authFirenomics",
-                          "centerscreen,chrome,modal");
-      }
+    req.onload = function FRS_onload(aEvent) {
       if (req.status == 200) {
         openUILinkIn('http://firenomics.appspot.com/home', 'tab');
       }
-    }
-  };
+    };
+
+    req.open("POST", FIRENOMICS_URL + "/update");
+    req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    req.send(postBody);
+  }
 }
 
 function getIcon(iconURL, callback) {
@@ -150,7 +151,7 @@ IconLoadListener.prototype = {
   onStopRequest: function (aRequest, aContext, aStatusCode) {
     if (Components.isSuccessCode(aStatusCode) && this._bytesRead > 0) {
       var dataURL;
-      
+
       var mimeType = null;
 
       var catMgr = Cc["@mozilla.org/categorymanager;1"]
@@ -201,4 +202,38 @@ IconLoadListener.prototype = {
 
   onProgress: function (aRequest, aContext, aProgress, aProgressMax) { },
   onStatus: function (aRequest, aContext, aStatus, aStatusArg) { }
+};
+
+
+
+var loginManager = Cc["@mozilla.org/login-manager;1"]
+                     .getService(Ci.nsILoginManager);
+
+var nsLoginInfo = new Components.Constructor("@mozilla.org/login-manager/loginInfo;1",
+                                             Ci.nsILoginInfo,
+                                             "init");
+function getLogins() {
+  return loginManager.findLogins({}, 'chrome://firenomics', 'Firenomics Profile', null);
+}
+
+var auth = {
+  get: function auth_get() {
+    var logins = getLogins();
+    if (logins.length == 1) {
+      return {key: logins[0].username, secret: logins[0].password};
+    }
+  },
+  set: function auth_set(key, secret) {
+    var logins = getLogins();
+
+    var newLogin = new nsLoginInfo('chrome://firenomics',
+                                   'Firenomics Profile', null,
+                                   key, secret, "", "");
+
+    if (logins.length > 0) {
+      loginManager.modifyLogin(logins[0], newLogin);
+    } else {
+      loginManager.addLogin(newLogin);
+    }
+  }
 };
