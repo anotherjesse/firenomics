@@ -350,6 +350,7 @@ class update:
 
         web.ctx.status = "200 OK"
         if send_welcome:
+            web.header('Content-Type', 'text/x-json')
             return simplejson.dumps({'profile': str(profile.key()), 'secret': profile.secret })
         else:
             return
