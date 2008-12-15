@@ -130,3 +130,7 @@ class ProfileExtension(db.Model, NiceDates):
     version = db.StringProperty()
     timestamp = db.DateTimeProperty(auto_now=True)
 
+class ExtensionRecommendation(db.Model):
+    recommended = db.Reference(Extension, collection_name="recommended")
+    extension = db.Reference(Extension)
+    timestamp = db.DateTimeProperty(auto_now=True)
