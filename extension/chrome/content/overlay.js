@@ -1,38 +1,43 @@
 Components.utils.import("resource://firenomics/reporter.js");
 
-function fnLoad() {
-  var appcontent = window.document.getElementById("appcontent");
-  if (appcontent) {
-    if (!appcontent.firenomicsInited) {
-      appcontent.firenomicsInited = true;
-      appcontent.addEventListener("DOMContentLoaded", function(event) { fnInit(event); }, false);
+var Firenomics = (function() {
+  var self = this;
+
+  var load = function() {
+    var appcontent = window.document.getElementById("appcontent");
+    if (appcontent) {
+      if (!appcontent.firenomicsInited) {
+        appcontent.firenomicsInited = true;
+        appcontent.addEventListener("DOMContentLoaded", init, true);
+      }
     }
   }
-}
 
-function fnInit(event) {
-  var win = new XPCNativeWrapper(event.originalTarget, "top");
+  var init = function(event) {
+    var win = new XPCNativeWrapper(event.originalTarget, "top");
 
-  if (win.location.href.match(FFirenomicsReporter.FIRENOMICS_URL + "/profile")) {
-    fnRenderProfilePage(win);
-    return;
+    if (win.location.href.match(FIRENOMICS_URL + "/profile")) {
+      renderProfilePage(win);
+      return;
+    }
   }
-}
 
-function fnGotoProfilePage() {
-  openUILinkIn(FIRENOMICS_URL + "/profile/1234", "tab");
-}
+  self.gotoProfilePage = function() {
+    openUILinkIn(FIRENOMICS_URL + "/profile/agpmaXJlbm9taWNzcg0LEgdQcm9maWxlGA0M", "tab");
+  }
 
-function fnRenderProfilePage(doc) {
-  alert('rendering profile page');
-  input = doc.getElementById('fnProfileSecret');
-  input.value = '1234';
-  div = doc.getElementById('fnClaimProfile');
-  div.style.visibility = 'visible';
-}
+  var renderProfilePage = function(doc) {
+    input = doc.getElementById('fnProfileSecret');
+    input.value = '1234';
+    div = doc.getElementById('fnClaimProfile');
+    div.style.visibility = 'visible';
+  }
 
-function fnSubmit() {
-  FirenomicsReporter.submit();
-}
+  self.submit = function() {
+    FirenomicsReporter.submit();
+  }
 
-fnLoad();
+  load();
+
+  return self;
+})();

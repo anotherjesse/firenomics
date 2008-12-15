@@ -6,11 +6,11 @@
   <script type="application/x-javascript" src="chrome://firenomics/content/overlay.js" />
 
   <menupopup id="menu_ToolsPopup">
-    <menuitem label="Update Firenomics" oncommand="fnSubmit();" />
+    <menuitem label="Update Firenomics" oncommand="Firenomics.submit();" />
   </menupopup>
 
   <statusbar id="status-bar">
-    <statusbarpanel id="firenomics-panel" label="Firenomics" onclick="fnGotoProfilePage();" >
+    <statusbarpanel id="firenomics-panel" label="Firenomics" onclick="Firenomics.gotoProfilePage();" >
       <image src="chrome://firenomics/skin/firenomics-16.png" />
     </statusbarpanel>
   </statusbar>
