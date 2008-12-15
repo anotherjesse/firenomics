@@ -1,10 +1,40 @@
 $def with (extension)
 $var title: $extension.name
 
-<h1>$extension.name</h1>
+<div class="center_content">
+  <div class="left_content">
+    <h1>$extension.name</h1>
 
-<p>Users:</p>
+    <p>$extension.description</p>
+  </div><!--end of left content-->
 
-$for ux in extension.profileextension_set:
-    <a href="/users/$ux.user.name" title="$ux.user.name"><img src="$ux.user.gravatar(40)" /></a>
+  <div class="right_content">
+    $if extension.homepageURL:
+        <h3>Homepage</h3>
+        <a href="$extension.homepageURL">$extension.homepageURL</a>
+    $if extension.creator:
+        <h3>Creator</h3>
+        $extension.creator
+    $if extension.developers:
+        <h3>Developers</h3>
+        <ul>
+        $for developer in extension.developers:
+            <li>$developer</li>
+        </ul>
+    $if extension.contributors:
+        <h3>Contributors</h3>
+        <ul>
+        $for contributor in extension.contributors:
+            <li>$contributor</li>
+        </ul>
+    $if extension.translators:
+        <h3>Translators</h3>
+        <ul>
+        $for translator in extension.translators:
+            <li>$translator</li>
+        </ul>
 
+  </div><!--end of right content-->
+
+  <div class="clear"></div>
+</div><!--end of center content-->
