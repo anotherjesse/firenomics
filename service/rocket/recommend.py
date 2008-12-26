@@ -1,4 +1,5 @@
 from math import sqrt
+import urllib, urllib2, time
 
 # Returns a distance-based similarity score for person1 and person2
 def sim_distance(prefs,person1,person2):
@@ -157,16 +158,25 @@ def getData():
         profiles[row[0]][row[1]] = 1
     return profiles
 
+def midize(key):
+    if len(key.split('/')) != 2:
+        raise "invalid assumption - mid contains a /"
+    return key.split('/')[1]
+
 def saveData():
-#    cur.execute("DELETE FROM ExtensionRecommendation")
+    #    cur.execute("DELETE FROM ExtensionRecommendation")
+
     data = calculateSimilarItems(getData())
     k = 1
-    sql = "INSERT INTO ExtensionRecommendation (k, recommended_ref, extension_ref) VALUES ('_%s', '%s', '%s')"
     for extension in data:
-        print extension
-        for recommended in data[extension]:
-            print '\t', recommended
-        k += 1
+        mid = midize(extension)
+        url = station.RECOMMEND_URL % urllib.quote(mid)
+        values = {'recommended':
+                      '/'.join([midize(y) for (x,y) in data[extension] if y > 0]) }
+        req = urllib2.Request(url, urllib.urlencode(values))
+        response = urllib2.urlopen(req)
+        print response.read()
+        time.sleep(1)
 
 #    cur.execute(sql % )
 

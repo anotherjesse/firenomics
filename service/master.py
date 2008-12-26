@@ -23,6 +23,7 @@ urls = (
   '/logout', 'logout',
   '/forums',  'forum',
   '/forums/feed',  'forum_feed',
+  '/recommend/(.*)', 'recommend',
   '(.+)/forum', 'topics',
   '(.+)/forum/new', 'newTopic',
   '(.+)/forum/([^/]*)', 'topic',
@@ -102,6 +103,22 @@ class welcome:
                 return web.seeother('/welcome')
 
         return web.seeother("/users/%s" % user.name)
+
+class recommend:
+    def POST(self, mid):
+        extension = db.GqlQuery("SELECT * FROM Extension WHERE mid = :1", mid)[0]
+        for rec in extension.extensionrecommendation_set.fetch(100):
+            rec.delete()
+
+        added = 0
+
+        for mid in web.input().recommended.split("/"):
+            recommended = db.GqlQuery("SELECT * FROM Extension WHERE mid = :1", mid)[0]
+            er = ExtensionRecommendation(recommended=recommended, extension=extension)
+            er.put()
+            added += 1
+
+        return "Extension: %s now has %s recommendations" % (extension.name, added)
 
 class profile:
     def GET(self, key):
@@ -291,7 +308,7 @@ class extensions:
         return render.extensions(extensions)
 
 class extension:
-    def GET(self, mid,):
+    def GET(self, mid):
         extension = db.GqlQuery("SELECT * FROM Extension WHERE mid = :1", mid)[0]
         return render.extension(extension)
 
