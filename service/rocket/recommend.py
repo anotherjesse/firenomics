@@ -158,12 +158,14 @@ def getData():
     return profiles
 
 def saveData():
-    cur.execute("DELETE FROM ExtensionRecommendation")
+#    cur.execute("DELETE FROM ExtensionRecommendation")
     data = calculateSimilarItems(getData())
     k = 1
     sql = "INSERT INTO ExtensionRecommendation (k, recommended_ref, extension_ref) VALUES ('_%s', '%s', '%s')"
     for extension in data:
-        print cur.execute(sql % (k, extension, 1))
+        print extension
+        for recommended in data[extension]:
+            print '\t', recommended
         k += 1
 
 #    cur.execute(sql % )
