@@ -17,7 +17,7 @@
 from datetime import datetime
 
 def escape(text):
-    
+
     return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace("'", '&#39;')
 
 
@@ -36,7 +36,7 @@ def to_iso(dt):
 class Log:
     def __init__(self, f):
         self.f = f
-        
+
     def write(self, s):
         self.f.write(s)
         self.f.flush()
