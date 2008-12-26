@@ -10,7 +10,7 @@ task :xpi do
 
   build = "0.1.#{Time.now.to_i}"
   `cd tmp/xpi && sed -i 's/BUILD/#{build}/g' *.rdf`
-  `cd tmp/xpi && find chrome chrome.manifest install.rdf | egrep -v "(~|#)" | xargs zip firenomics.xpi`
+  `cd tmp/xpi && find chrome components chrome.manifest install.rdf | egrep -v "(~|#)" | xargs zip firenomics.xpi`
   puts "Built version #{build}"
 end
 

@@ -1,17 +1,33 @@
 $def with (user)
 $var title: $user.name
 
+<div class="center_content">
+  <div class="left_content">
+
 <img src="$user.gravatar(80)" style="float :left; padding: 10px" />
 <h1>$user.name</h1>
 
-<div class="clear"></div>
+    <div class="clear"></div>
 
 <div id="myprofiles">
 $for profile in user.profile_set:
-    <h3 class="profile $profile.platform">$profile.name <em>$profile.version on $profile.os</em></h3>
+    <h3 class="profile $profile.platform">$profile.platform $profile.name <em>$profile.version on $profile.os</em></h3>
     <ul>
     $for ux in profile.profileextension_set:
         <li><a href="/extensions/$ux.extension.mid">$ux.extension.name</a> <em>$ux.version</em></li>
     </ul>
 
 </div>
+
+
+  </div><!--end of left content-->
+
+  <div class="right_content">
+
+<h3>Embeding your profile list & reinstalling all extensions coming soon!</h3>
+
+
+  </div><!--end of right content-->
+
+  <div class="clear"></div>
+</div><!--end of center content-->
