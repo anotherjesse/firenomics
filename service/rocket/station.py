@@ -148,28 +148,31 @@ def replicate(kind, options):
     if options.has_key(RECEIVE_FIELDS): receive_fields = set(options[RECEIVE_FIELDS])
     else: receive_fields = None
 
+    if options.has_key(EMBEDDED_LIST_FIELDS): embedded_list_fields = set(options[EMBEDDED_LIST_FIELDS])
+    else: embedded_list_fields = []
+
     if options.has_key(MODE): mode = options[MODE] 
     else: mode = SEND_RECEIVE
        
     if mode == SEND_RECEIVE or mode == SEND:     
-        if send_updates(kind, table_name, timestamp_field, table_key_field, send_fields):
+        if send_updates(kind, table_name, timestamp_field, table_key_field, send_fields, embedded_list_fields):
             updates = True
         
     if mode == RECEIVE_SEND or mode == SEND_RECEIVE or mode == RECEIVE:     
-        if receive_updates(kind, table_name, timestamp_field, table_key_field, receive_fields):
+        if receive_updates(kind, table_name, timestamp_field, table_key_field, receive_fields, embedded_list_fields):
             updates = True
 
     if mode == RECEIVE_SEND:     
-        if send_updates(kind, table_name, timestamp_field, table_key_field, send_fields):
+        if send_updates(kind, table_name, timestamp_field, table_key_field, send_fields, embedded_list_fields):
             updates = True
     
     return updates
     
     
-def send_updates(kind, table_name, timestamp_field, table_key_field, send_fields):
+def send_updates(kind, table_name, timestamp_field, table_key_field, send_fields, embedded_list_fields):
     cur = con.cursor()
     
-    table = get_table_metadata(cur, table_name, timestamp_field, table_key_field)        
+    table = get_table_metadata(cur, table_name, timestamp_field, table_key_field, embedded_list_fields)        
     
     if not table.fields.has_key(timestamp_field):
         logging.error('Error: table %s is missing timestamp field "%s"' % (table_name, timestamp_field))
@@ -212,15 +215,18 @@ def send_updates(kind, table_name, timestamp_field, table_key_field, send_fields
             for field_name, field_type in table.fields.items():
                 
                 field_value = row[i]
-
+                
                 if field_name == timestamp_field and field_value:
                     intermediate_timestamp = field_value - timedelta(seconds=1)
                     # do not send time stamp to avoid send/receive loop
                     
                 elif field_name == table_key_field:
-                    key = mysql_to_rocket(TYPE_KEY, field_value)
-                    entity[TYPE_KEY] = key
+                    key = field_value
+                    entity[TYPE_KEY] = mysql_to_rocket(TYPE_KEY, field_value)
                                           
+                elif field_type == TYPE_STR_LIST:
+                    entity["*%s|%s" % (TYPE_STR, field_name)] = mysql_to_rocket(TYPE_STR, field_value)
+                    
                 else:
                     if field_name.endswith("_ref"):
                         field_name = field_name[:len(field_name)-4]
@@ -290,7 +296,7 @@ def send_row(kind, key, entity):
     
     
 
-def receive_updates(kind, table_name, timestamp_field, table_key_field, receive_fields):
+def receive_updates(kind, table_name, timestamp_field, table_key_field, receive_fields, embedded_list_fields):
     updates = False
                 
     # receive updates
@@ -314,7 +320,7 @@ def receive_updates(kind, table_name, timestamp_field, table_key_field, receive_
             
             xml = ElementTree.XML(response)
             for entity in xml:
-                receive_row(cur, kind, table_name, timestamp_field, table_key_field, receive_fields, entity)
+                receive_row(cur, kind, table_name, timestamp_field, table_key_field, receive_fields, embedded_list_fields, entity)
                 count += 1
                 last_timestamp = entity.findtext("timestamp")
             
@@ -341,9 +347,11 @@ def receive_updates(kind, table_name, timestamp_field, table_key_field, receive_
 
 
 
-def receive_row(cur, kind, table_name, timestamp_field, table_key_field, receive_fields, entity):
+def receive_row(cur, kind, table_name, timestamp_field, table_key_field, receive_fields, embedded_list_fields, entity):
     fields = []
     values = []
+
+    table = get_table_metadata(cur, table_name, timestamp_field, table_key_field, embedded_list_fields)
 
     key = rocket_to_mysql(TYPE_KEY, entity.attrib[TYPE_KEY]) 
     
@@ -364,10 +372,16 @@ def receive_row(cur, kind, table_name, timestamp_field, table_key_field, receive
                 field_name += "_ref"            
 
             is_list = field.attrib.has_key("list")
+            is_embedded_list = field_name in embedded_list_fields
+            synchronize_field(cur, table, field_name, field_type, is_list, is_embedded_list)
             
-            synchronize_field(cur, table_name, timestamp_field, table_key_field, field_name, field_type, is_list)
-            
-            if is_list:
+            if is_embedded_list:
+                list_values = []
+                for item in field:
+                    list_values.append(item.text)
+                fields.append("`%s`" % field_name)
+                values.append('|'.join(list_values))
+            elif is_list:
                 list_table_name = '%s_%s' % (table_name, field_name)
                 sql = 'DELETE FROM ' + list_table_name + ' WHERE ' +  table_key_field + """ = %s"""
                 cur.execute(sql, (key))
@@ -395,7 +409,7 @@ def receive_row(cur, kind, table_name, timestamp_field, table_key_field, receive
 
 
 
-def get_table_metadata(cur, table_name, timestamp_field, table_key_field):
+def get_table_metadata(cur, table_name, timestamp_field, table_key_field, embedded_list_fields):
     global tables
     
     if tables.has_key(table_name):
@@ -407,15 +421,17 @@ def get_table_metadata(cur, table_name, timestamp_field, table_key_field):
             # table exist
             
             # start with empty definition
-            table = Table() 
+            table = Table(table_name, timestamp_field, table_key_field)
             
             # add table fields
             cur.execute('SHOW COLUMNS FROM %s' % table_name)
             for col in cur.fetchall():
                 field_name = col[0]
-                field_type = normalize_type(field_name, col[1])
-                logging.error("%s %s/%s" % (field_name, col[1], field_type))
-                table.fields[field_name] = field_type
+                if field_name in embedded_list_fields:
+                    table.fields[field_name] = TYPE_STR_LIST # for embedded lists currently we only support string values
+                else:
+                    field_type = normalize_type(field_name, col[1])
+                    table.fields[field_name] = field_type
                 
             # add list fields stored in separate tables (TableName_ListField)
             cur.execute('SHOW TABLES LIKE "%s_%%"' % table_name)
@@ -438,9 +454,7 @@ def get_table_metadata(cur, table_name, timestamp_field, table_key_field):
             # tables is missing
             cur.execute("CREATE TABLE %s (%s VARCHAR(255) NOT NULL, %s TIMESTAMP, PRIMARY KEY(%s), INDEX %s(%s)) ENGINE = %s CHARACTER SET utf8 COLLATE utf8_general_ci" % (table_name, table_key_field, timestamp_field, table_key_field, timestamp_field, timestamp_field, DATABASE_ENGINE))
             
-            table = tables[table_name] = Table()
-            table.fields[table_key_field] = TYPE_KEY
-            table.fields[timestamp_field] = TYPE_TIMESTAMP
+            table = tables[table_name] = Table(table_name, timestamp_field, table_key_field)
             
             return table
 
@@ -459,24 +473,35 @@ def normalize_type(field_name, field_type):
     
 
 class Table:
-    def __init__(self):
+    def __init__(self, name, timestamp_field, key_field):
+        self.name = name
+        self.timestamp_field = timestamp_field
+        self.key_field = key_field        
+
         self.fields = {}
+        self.fields[key_field] = TYPE_KEY
+        self.fields[timestamp_field] = TYPE_TIMESTAMP
+        
         self.list_fields = {}
+                    
 
 
 
-def synchronize_field(cur, table_name, timestamp_field, table_key_field, field_name, field_type, is_list):
-    table = get_table_metadata(cur, table_name, timestamp_field, table_key_field)
-    
-    if is_list:
+def synchronize_field(cur, table, field_name, field_type, is_list, is_embedded_list):
+    if is_embedded_list:
+        if not table.fields.has_key(field_name):        
+            # table doesn't have this field yet - add it
+            create_field(cur, table.name, table.key_field, field_name, TYPE_STR_LIST, False)            
+            table.fields[field_name] = TYPE_STR_LIST
+    elif is_list:
         if not table.list_fields.has_key(field_name):        
             # table doesn't have this field yet - add it
-            create_field(cur, table_name, table_key_field, field_name, field_type, is_list)            
+            create_field(cur, table.name, table.key_field, field_name, field_type, is_list)            
             table.list_fields[field_name] = field_type
     else:            
         if not table.fields.has_key(field_name):        
             # table doesn't have this field yet - add it
-            create_field(cur, table_name, table_key_field, field_name, field_type, is_list)            
+            create_field(cur, table.name, table.key_field, field_name, field_type, is_list)            
             table.fields[field_name] = field_type
     
 
@@ -500,7 +525,7 @@ def create_field(cur, table_name, table_key_field, field_name, field_type, is_li
             cur.execute("ALTER TABLE %s ADD COLUMN `%s` FLOAT" % (table_name, field_name))
         elif field_type == TYPE_BOOL:
             cur.execute("ALTER TABLE %s ADD COLUMN `%s` BOOLEAN" % (table_name, field_name))
-        elif field_type == TYPE_TEXT:
+        elif field_type == TYPE_TEXT or field_type == TYPE_STR_LIST:
             cur.execute("ALTER TABLE %s ADD COLUMN `%s` TEXT" % (table_name, field_name))
         elif field_type == TYPE_KEY or field_type == TYPE_REFERENCE:
             cur.execute("ALTER TABLE %s ADD COLUMN `%s` VARCHAR(500)" % (table_name, field_name))

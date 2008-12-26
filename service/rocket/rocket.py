@@ -141,7 +141,11 @@ class Rocket(webapp.RequestHandler):
                     value = self.request.get(arg)                    
                     if field_type.startswith("*"):
                         field_type = field_type[1]
-                        entity[field_name] = map(lambda v: rocket_to_ae(field_type, v), value.split('|'))
+                        if len(value) == 0:
+                            if entity.has_key(field_name):
+                                del entity[field_name]
+                        else:
+                            entity[field_name] = map(lambda v: rocket_to_ae(field_type, v), value.split('|'))
                     else:
                         entity[field_name] = rocket_to_ae(field_type, value)
                         
@@ -236,8 +240,6 @@ def rocket_to_ae(field_type, rocket_value):
     else: #str
         ae_value = (u"%s" % rocket_value).replace('&#124;','|')
     
-    logging.error("%s %s" % (field_type, rocket_value))
-                  
     return ae_value
                                                                 
              

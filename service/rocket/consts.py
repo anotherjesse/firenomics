@@ -24,6 +24,7 @@ TYPE_TEXT = "text"
 TYPE_KEY = "key"
 TYPE_REFERENCE = "ref"
 TYPE_STR = "str"
+TYPE_STR_LIST = "str_list"
 TYPE_BLOB = "blob"
 
 DEFAULT_TIMESTAMP_FIELD = "timestamp"
@@ -44,3 +45,5 @@ RECEIVE = "R"
 RECEIVE_FIELDS = "RF"
 
 SEND_FIELDS = "SF"
+
+EMBEDDED_LIST_FIELDS = "ELF" 
