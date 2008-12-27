@@ -59,28 +59,6 @@ class PageVersion(db.Model):
     created = db.DateTimeProperty(auto_now_add=True)
 
 
-class Article(db.Model, NiceDates):
-    title = db.StringProperty()
-    slug = db.StringProperty()
-    body = db.TextProperty()
-    draft = db.BooleanProperty()
-    created = db.DateTimeProperty(auto_now_add=True)
-    tags = db.ListProperty(basestring, default=None)
-
-    def previous(self):
-        return db.GqlQuery("SELECT * FROM Article WHERE created < :1 ORDER BY created DESC LIMIT 5", self.created)
-
-
-class Comment(db.Model, Gravatar, NiceDates, Anchor):
-    article = db.Reference(Article)
-    name = db.StringProperty()
-    email = db.StringProperty()
-    url = db.StringProperty()
-    body = db.TextProperty()
-    body_html = db.TextProperty()
-    created = db.DateTimeProperty(auto_now_add=True)
-    raw = db.TextProperty()
-
 class User(db.Model, GravatarUser):
     name = db.StringProperty()
     goog = db.UserProperty()
