@@ -21,9 +21,10 @@ const Cr = Components.results;
 const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource://firenomics/auth.js");
 
-const FIRENOMICS_URL = "http://firenomics.appspot.com";
-//const FIRENOMICS_URL = "http://localhost:8080";
+//const FIRENOMICS_URL = "http://firenomics.appspot.com";
+const FIRENOMICS_URL = "http://localhost:8080";
 
 
 function getObserverService() {
@@ -87,7 +88,7 @@ Firenomics.prototype = {
     const RDFS = Cc['@mozilla.org/rdf/rdf-service;1']
       .getService(Ci.nsIRDFService);
 
-    function Namespace(ns) { return function(arg) RDFS.GetResource(ns + arg) }
+    function Namespace(ns) { return function(arg) RDFS.GetResource(ns + arg); };
 
     const EMRDF = Namespace('http://www.mozilla.org/2004/em-rdf#');
 
@@ -195,7 +196,7 @@ Firenomics.prototype = {
 
     req.onload = function FRS_onload(aEvent) {
       if (req.status == 200) {
-        if (getLogins().length < 1) {
+        if (!auth.get()) {
           var user = nsJSON.decode(req.responseText);
           auth.set(user.profile, user.secret);
         }
@@ -338,45 +339,5 @@ IconLoadListener.prototype = {
   onStatus: function (aRequest, aContext, aStatus, aStatusArg) { }
 };
 
-
-
-var loginManager = Cc["@mozilla.org/login-manager;1"]
-                     .getService(Ci.nsILoginManager);
-
-var nsLoginInfo = new Components.Constructor("@mozilla.org/login-manager/loginInfo;1",
-                                             Ci.nsILoginInfo,
-                                             "init");
-function getLogins() {
-  return loginManager.findLogins({}, 'chrome://firenomics', 'Firenomics Profile', null);
-}
-
-var auth = {
-  get: function auth_get() {
-    var logins = getLogins();
-    if (logins.length == 1) {
-      return {key: logins[0].username, secret: logins[0].password};
-    }
-  },
-  set: function auth_set(key, secret) {
-    var logins = getLogins();
-
-    var newLogin = new nsLoginInfo('chrome://firenomics',
-                                   'Firenomics Profile', null,
-                                   key, secret, "", "");
-
-    if (logins.length > 0) {
-      loginManager.modifyLogin(logins[0], newLogin);
-    } else {
-      loginManager.addLogin(newLogin);
-    }
-  },
-  clear: function auth_clear() {
-    var logins = getLogins();
-    logins.forEach(function(login) {
-      loginManager.removeLogin(login);
-    });
-  }
-};
-
 function NSGetModule(compMgr, fileSpec)
-  XPCOMUtils.generateModule([Firenomics]);
+  XPCOMUtils.generateModule([Firenomics])
