@@ -201,9 +201,20 @@ Firenomics.prototype = {
         }
         //openUILinkIn('http://firenomics.appspot.com/home', 'tab');
       }
+      if (req.status == 410) {
+        auth.clear();
+        var user = nsJSON.decode(req.responseText);
+        auth.set(user.profile, user.secret);
+      }
     };
 
-    req.open("POST", FIRENOMICS_URL + "/update");
+    // FIXME: append the key if one exists
+    var url = FIRENOMICS_URL + '/update';
+    var user = this.getUser();
+    if (user) {
+      url += '/' + user.key;
+    }
+    req.open("POST", url);
     req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     req.send(postBody);
   },

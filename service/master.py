@@ -327,18 +327,26 @@ class home:
 
 class update:
     def POST(self, key=None):
-        web.debug("hi")
+        web.debug("hi: %s" % key)
         json = simplejson.loads(web.input().data)
 
         if key and key != '':
+            web.debug("here")
             send_welcome = False
             profile = Profile.get(db.Key.from_path('Profile', key))
+
+            if profile:
+                pass
+            else:
+                send_welcome = 410
+                secret_uuid = uuid.uuid4()
+                profile = Profile(secret=secret_uuid.hex)
             # FIXME: check if signature matches
             # web.ctx.status = "401 Unauthorized"
             # return
 
         else:
-            send_welcome = True
+            send_welcome = 200
             secret_uuid = uuid.uuid4()
             profile = Profile(secret=secret_uuid.hex)
             # FIXME: return the key/secret on success
@@ -397,13 +405,13 @@ class update:
 
         web.debug("profile key: %s" % profile.key())
 
-        web.ctx.status = "200 OK"
         if send_welcome:
+            web.ctx.status = "%s New Profile" % send_welcome
             web.header('Content-Type', 'text/x-json')
             return simplejson.dumps({'profile': str(profile.key()), 'secret': profile.secret})
         else:
-            return
-
+            web.ctx.status = "200 OK"
+            return ""
 
 class redirect:
     def GET(self, slug):
