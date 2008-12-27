@@ -25,6 +25,9 @@ var CryptoHash = {
 
     return ret;
   },
+  md5Sign: function CryptoHash_sign(aString, aKey) {
+    return this.md5(aString + aKey);
+  },
   hash: function CryptoHash_hash(aString, aAlgorithm) {
     var stream = Cc["@mozilla.org/io/string-input-stream;1"]
       .createInstance(Ci.nsIStringInputStream);

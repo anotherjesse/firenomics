@@ -330,10 +330,12 @@ class update:
             profile = Profile.get(key)
 
             if profile:
-                # FIXME: check if signature matches
-                # web.ctx.status = "401 Unauthorized"
-                # return
-                pass
+                sig = web.input().sig
+                data = web.data()
+                expected = md5.new(data + profile.secret).hexdigest()
+                if sig != expected:
+                    web.ctx.status = "401 Unauthorized"
+                    return "Invalid Signature"
             else:
                 send_welcome = 410
 

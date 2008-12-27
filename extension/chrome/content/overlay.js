@@ -34,14 +34,10 @@ var Firenomics = (function() {
     if (doc.location.href.match(user.key)) {
       input = doc.getElementById('fnProfileNonce');
       response = doc.getElementById('fnProfileResponse');
-      response.value = sign(input.value, user.secret);
+      response.value = CryptoHash.md5Sign(input.value, user.secret);
       div = doc.getElementById('fnClaimProfile');
       div.style.visibility = 'visible';
     }
-  }
-
-  var sign = function(str, key) {
-    return CryptoHash.md5(str + key);
   }
 
   self.submit = function() {
