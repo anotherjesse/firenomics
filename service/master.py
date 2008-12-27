@@ -76,29 +76,35 @@ class settings:
 # articles ? (draft)
 # forums
 
+def profile_or_home():
+    try:
+        if web.input().profile:
+            return web.seeother("/profile/%s" % web.input().profile)
+    except:
+        pass
+    return web.seeother('/home')
+
 class welcome:
     def GET(self):
         user = db.GqlQuery("SELECT * FROM User WHERE goog = :1", users.get_current_user()).get()
         if not user:
             return render.welcome()
         else:
-            return web.seeother('/home')
+            return profile_or_home()
 
     def POST(self):
         user = db.GqlQuery("SELECT * FROM User WHERE goog = :1", users.get_current_user()).get()
         if not user:
             valid_name_regexp = re.compile(r"[a-z]+[a-z_0-9]+")
-            if not valid_name_regexp.match(web.input().name):
-                return web.seeother('/welcome')
-            user = User(key_name=web.input().name)
-            user.goog = users.get_current_user()
-            user.name = web.input().name
-            if user.put():
-                return web.seeother("/users/%s" % user.name)
-            else:
-                return web.seeother('/welcome')
+            if valid_name_regexp.match(web.input().name):
+                user = User(key_name=web.input().name)
+                user.goog = users.get_current_user()
+                user.name = web.input().name
+                if user.put():
+                    return profile_or_home()
+            return render.welcome()
 
-        return web.seeother("/users/%s" % user.name)
+        return profile_or_home()
 
 class recommend:
     def POST(self, mid):
