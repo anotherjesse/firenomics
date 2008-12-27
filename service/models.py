@@ -39,28 +39,6 @@ class Anchor:
         return "%s-%s" % (self.__class__.__name__.lower(), str(self.key())[-8:])
 
 
-class Forum(db.Model):
-    slug        = db.StringProperty()
-    name        = db.StringProperty()
-    description = db.TextProperty()
-
-
-class Topic(db.Model, GravatarUser, NiceDates):
-    forum = db.Reference(Forum)
-    title = db.StringProperty()
-    created = db.DateTimeProperty(auto_now_add=True)
-    last_post = db.DateTimeProperty(auto_now_add=True)
-    user = db.UserProperty()
-
-
-class Post(db.Model, GravatarUser, NiceDates, Anchor):
-    topic = db.Reference(Topic)
-    user = db.UserProperty()
-    body = db.TextProperty()
-    body_html = db.TextProperty()
-    created = db.DateTimeProperty(auto_now_add=True)
-
-
 class Redirect(db.Model):
     slug      = db.StringProperty()
     url       = db.StringProperty()

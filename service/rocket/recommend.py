@@ -137,7 +137,7 @@ def getRecommendedItems(prefs,itemMatch,user):
       totalSim[item2]+=similarity
 
   # Divide each total score by total weighting to get an average
-  rankings=[(score/totalSim[item],item) for item,score in scores.items( )]
+  rankings=[(score/totalSim[item],item) for item,score in scores.items()]
 
   # Return the rankings from highest to lowest
   rankings.sort( )
@@ -145,10 +145,10 @@ def getRecommendedItems(prefs,itemMatch,user):
   return rankings
 
 import station;
-station.connect()
-cur = station.con.cursor()
 
 def getData():
+    station.connect()
+    cur = station.con.cursor()
     cur.execute('select profile_ref, extension_ref from ProfileExtension')
 
     profiles = {}
@@ -164,8 +164,6 @@ def midize(key):
     return key.split('/')[1]
 
 def saveData():
-    #    cur.execute("DELETE FROM ExtensionRecommendation")
-
     data = calculateSimilarItems(getData())
     k = 1
     for extension in data:
@@ -178,26 +176,4 @@ def saveData():
         print response.read()
         time.sleep(1)
 
-#    cur.execute(sql % )
-
- #   print data
-
 saveData()
-
-print station.con.commit()
-print cur.close()
-station.con.close()
-
-
-"""
-DROP TABLE IF EXISTS `ExtensionRecommendation`;
-SET character_set_client = utf8;
-CREATE TABLE `ExtensionRecommendation` (
-  `k` varchar(255) NOT NULL,
-  `timestamp` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
-  `recommended_ref` varchar(500) default NULL,
-  `extension_ref` varchar(500) default NULL,
-  PRIMARY KEY  (`k`),
-  KEY `timestamp` (`timestamp`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-"""

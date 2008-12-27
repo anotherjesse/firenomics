@@ -211,11 +211,11 @@ Firenomics.prototype = {
     };
 
     // FIXME: append the key if one exists
-    var url = FIRENOMICS_URL + '/update';
+    var url = FIRENOMICS_URL + '/api/v1/update';
     var user = auth.get();
     if (user) {
       url += '/' + user.key;
-      url += '?sig=' + CryptoHash.md5Sign('-'+postBody, user.secret);
+      url += '?sig=' + CryptoHash.md5Sign(postBody, user.secret);
     }
     req.open("POST", url);
     req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
