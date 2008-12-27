@@ -4,11 +4,7 @@ from vendor.recaptcha.client import captcha
 from vendor import web
 from models import *
 from utils import analytics
-import sanitize
-import simplejson
-import uuid
-import md5
-import re
+import sanitize, simplejson, uuid, md5, re
 
 PUB = 'FIXME'
 
@@ -122,7 +118,6 @@ class recommend:
 
 class profile:
     def GET(self, key):
-        web.debug(str(dir(web)))
         try:
             if web.input().login:
                 return web.seeother(users.create_login_url("/welcome?profile=%s" % key))
@@ -328,28 +323,26 @@ class home:
 class update:
     def POST(self, key=None):
         web.debug("hi: %s" % key)
+        send_welcome = False
         json = simplejson.loads(web.input().data)
 
         if key and key != '':
-            web.debug("here")
-            send_welcome = False
-            profile = Profile.get(db.Key.from_path('Profile', key))
+            profile = Profile.get(key)
 
             if profile:
+                # FIXME: check if signature matches
+                # web.ctx.status = "401 Unauthorized"
+                # return
                 pass
             else:
                 send_welcome = 410
-                secret_uuid = uuid.uuid4()
-                profile = Profile(secret=secret_uuid.hex)
-            # FIXME: check if signature matches
-            # web.ctx.status = "401 Unauthorized"
-            # return
 
         else:
             send_welcome = 200
+
+        if send_welcome:
             secret_uuid = uuid.uuid4()
             profile = Profile(secret=secret_uuid.hex)
-            # FIXME: return the key/secret on success
 
         profile.version = json['system']['version']
         profile.os = json['system']['OS']

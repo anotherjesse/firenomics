@@ -23,8 +23,8 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://firenomics/auth.js");
 
-//const FIRENOMICS_URL = "http://firenomics.appspot.com";
-const FIRENOMICS_URL = "http://localhost:8080";
+const FIRENOMICS_URL = "http://firenomics.appspot.com";
+//const FIRENOMICS_URL = "http://localhost:8080";
 
 
 function getObserverService() {
@@ -211,9 +211,8 @@ Firenomics.prototype = {
 
     // FIXME: append the key if one exists
     var url = FIRENOMICS_URL + '/update';
-    var user = this.getUser();
-    if (user) {
-      url += '/' + user.key;
+    if (auth.get()) {
+      url += '/' + auth.get().key;
     }
     req.open("POST", url);
     req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
