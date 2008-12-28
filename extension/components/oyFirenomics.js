@@ -21,12 +21,11 @@ const Cr = Components.results;
 const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
-Cu.import("resource://firenomics/auth.js");
-Cu.import("resource://firenomics/crypto.js");
 
 const FIRENOMICS_URL = "http://firenomics.appspot.com";
 //const FIRENOMICS_URL = "http://localhost:8080";
 
+var global = this;
 
 function getObserverService() {
   return Cc['@mozilla.org/observer-service;1']
@@ -35,6 +34,10 @@ function getObserverService() {
 
 
 function Firenomics() {
+
+  Cu.import("resource://firenomics/auth.js", global);
+  Cu.import("resource://firenomics/crypto.js", global);
+
   const appInfo = Cc["@mozilla.org/xre/app-info;1"]
     .getService(Ci.nsIXULAppInfo)
     .QueryInterface(Ci.nsIXULRuntime);

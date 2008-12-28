@@ -6,11 +6,10 @@ task :xpi do
   `rm -rf tmp/xpi`
   `mkdir -p tmp/xpi`
   `cp -r extension/. tmp/xpi`
-  `rm tmp/xpi/.gitignore`
 
   build = "0.1.#{Time.now.to_i}"
   `cd tmp/xpi && sed -i 's/BUILD/#{build}/g' *.rdf`
-  `cd tmp/xpi && find chrome components chrome.manifest install.rdf | egrep -v "(~|#)" | xargs zip firenomics.xpi`
+  `cd tmp/xpi && find chrome components chrome.manifest modules install.rdf | egrep -v "(~|#|\.git|\.idl)" | xargs zip firenomics.xpi`
   puts "Built version #{build}"
 end
 
