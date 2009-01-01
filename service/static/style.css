@@ -123,9 +123,9 @@ padding:0px 0 0 0;
 background:url(images/center_bg.gif) repeat-y center;
 }
 .left_content{
-width:490px;
+width:470px;
 float:left;
-padding:20px 0 20px 20px;
+padding:20px 20px 20px 20px;
 }
 .right_content{
 width:370px;

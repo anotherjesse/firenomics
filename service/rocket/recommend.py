@@ -171,9 +171,12 @@ def saveData():
         url = station.RECOMMEND_URL % urllib.quote(mid)
         values = {'recommended':
                       '/'.join([midize(y) for (x,y) in data[extension] if y > 0]) }
-        req = urllib2.Request(url, urllib.urlencode(values))
-        response = urllib2.urlopen(req)
-        print response.read()
+        try:
+            req = urllib2.Request(url, urllib.urlencode(values))
+            response = urllib2.urlopen(req)
+            print response.read()
+        except:
+            print "oops"
         time.sleep(1)
 
 saveData()
