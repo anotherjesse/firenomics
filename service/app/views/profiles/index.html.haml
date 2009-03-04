@@ -1,0 +1,5 @@
+%h2 Profiles
+
+%ul
+  - @profiles.each do |p|
+    %li= link_to p.id, p

@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 Jesse Andrews and Manish Singh
+ * Copyright 2009 Jesse Andrews and Manish Singh
  *
  * This file may be used under the terms of of the
  * GNU General Public License Version 2 or later (the "GPL"),
@@ -22,8 +22,8 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
-const FIRENOMICS_URL = "http://firenomics.appspot.com";
-//const FIRENOMICS_URL = "http://localhost:8080";
+//const FIRENOMICS_URL = "http://firenomics.appspot.com";
+const FIRENOMICS_URL = "http://localhost:3000";
 
 var global = this;
 

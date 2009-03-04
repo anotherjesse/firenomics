@@ -13,12 +13,22 @@
 #  updated_at :datetime
 #
 
+require 'md5'
+
 class Profile < ActiveRecord::Base
   belongs_to :user
   has_many :profile_extensions
 
+  def OS=(val)
+    self.os = val
+  end
+
   def before_create
-    secret_uuid = uuid.uuid4()
+    self.secret = UUID.random_create.to_s
+  end
+
+  def sign(data)
+    MD5.md5(data + secret).hexdigest
   end
 
 end
