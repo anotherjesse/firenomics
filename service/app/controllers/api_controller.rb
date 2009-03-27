@@ -9,7 +9,7 @@ class ApiController < ApplicationController
       @profile = Profile.find_by_id(params[:id])
 
       if @profile
-        if params[:sig] != @profile.sign(params[:data])
+        if params[:sig] != @profile.sign(request.raw_post)
           render :status => 401, :text => '401 Unauthorized'
           return
         end
