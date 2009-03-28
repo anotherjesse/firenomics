@@ -52,7 +52,7 @@ class ApiController < ApplicationController
     existing.values.each &:destroy
 
     if @send_welcome
-      render :status => 200,
+      render :status => (params[:id].blank? ? 200 : 410),
              :text => {'profile' => @profile.id, 'secret' => @profile.secret}.to_json
     else
       render :text => 'KTHXBAI'
