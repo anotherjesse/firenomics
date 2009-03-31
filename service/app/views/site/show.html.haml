@@ -1,0 +1,11 @@
+%h1 extensions
+
+%ul
+  - @extensions.each do |e|
+    %li= link_to h(e.name), e
+
+%h1 profiles
+
+%ul
+  - Profile.all.each do |p|
+    %li= link_to p.id, p
