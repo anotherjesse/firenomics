@@ -1,3 +1,32 @@
-%ul
-  - @profile.profile_extensions.each do |pe|
-    %li= link_to h(pe.extension.name), pe.extension
+- @title = 'Profile'
+
+.center_content
+  .left_content
+    .title
+      %span.title_icon
+        %img{:src=>"/images/bullet1.gif"}
+      Overview
+
+    .feat_prod_box_details
+
+      %h3.profile{:class => @profile.platform}
+        = h(@profile.platform)
+        %em
+          = @profile.version
+          on
+          = @profile.os
+
+      %ul
+        - @profile.profile_extensions.each do |ux|
+          %li
+            = link_to h(ux.extension.name), ux.extension
+            %em= ux.version
+
+    .clear
+  .right_content
+    .clear
+
+  .clear
+
+
+

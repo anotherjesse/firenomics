@@ -587,15 +587,15 @@ h3.profile em
 
 h3.Firefox.profile
 {
-  background: url(/static/logos/firefox.png) no-repeat top left;
+  background: url(/images/logos/firefox.png) no-repeat top left;
 }
 
 h3.Songbird.profile
 {
-  background: url(/static/logos/songbird.png) no-repeat top left;
+  background: url(/images/logos/songbird.png) no-repeat top left;
 }
 
 h3.Flock.profile
 {
-  background: url(/static/logos/flock.png) no-repeat top left;
+  background: url(/images/logos/flock.png) no-repeat top left;
 }

@@ -20,7 +20,9 @@ class ApiController < ApplicationController
       @send_welcome = @profile = Profile.new
     end
 
-    @profile.update_attributes json['system'].slice('version', 'OS', 'name')
+    @profile.update_attributes(:version => json['system']['version'],
+                               :OS => json['system']['OS'],
+                               :platform => json['system']['name'])
 
     # Build a dictionary of the current extensions
     existing = Hash.new
