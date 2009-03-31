@@ -1,4 +1,15 @@
-%h1= h(@extension.name)
+- @title = @extension.name
 
-%p
-  = @extension.inspect.gsub('<', '&lt;')
+.center_content
+  .left_content
+    %h1= h(@extension.name)
+    %p= h(@extension.description)
+  .right_content
+    - if @extension.homepageURL
+      %h3 Homepage
+      %a{:href => @extension.homepageURL}=h(@extension.homepageURL)
+    - if @extension.creator
+      %h3 Creator
+      %ul
+        %li= h(@extension.creator)
+  .clear
