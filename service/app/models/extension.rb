@@ -19,4 +19,8 @@
 
 class Extension < ActiveRecord::Base
   has_many :profile_extensions
+
+  serialize :developers
+  serialize :translators
+  serialize :contributors
 end
