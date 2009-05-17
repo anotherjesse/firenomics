@@ -8,7 +8,7 @@ require File.join(File.dirname(__FILE__), 'boot')
 
 Rails::Initializer.run do |config|
   config.gem "aws-s3", :lib => "aws/s3"
-  config.gem "bj"
+#  config.gem "bj"
   config.gem "haml"
   config.gem "hpricot"
   config.gem "uuidtools"

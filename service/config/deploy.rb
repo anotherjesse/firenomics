@@ -7,7 +7,7 @@ set :application, "firenomics"
 
 set :deploy_to, "/home/deploy/firenomics"
 set :deploy_via, :remote_cache
-set :branch, 'master'
+set :branch, 'rails'
 set :repository, "git@github.com:anotherjesse/firenomics.git"
 set :scm, :git
 set :git_shallow_clone, 1
@@ -25,7 +25,7 @@ ssh_options[:paranoid] = false
 
 desc "copy config files in after deploy"
 task :after_update_code do
-  run "cp #{shared_path}/config/*.yml #{release_path}/config/"
+  run "cp #{shared_path}/config/*.yml #{release_path}/service/config/"
 end
 
 namespace :deploy do
