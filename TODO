@@ -1,0 +1,20 @@
+Version 0.2:
+
+  [ ] user auth: authlogic
+    [ ] openid
+    [ ] facebook?
+    [ ] twitter?
+
+  [ ] claim a profile
+
+  [ ] make homepage not suck
+
+  [ ] icon?
+
+  [ ] static pages
+    [ ] about
+    [ ] privacy
+    [ ] contact
+    [ ] install
+
+  [ ] /me page for when you are logged in
