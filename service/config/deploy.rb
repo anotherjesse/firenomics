@@ -31,7 +31,7 @@ end
 namespace :deploy do
   desc "restart passenger"
   task :restart, :roles => :app do
-    run "touch #{current_path}/tmp/restart.txt"
+    run "touch #{current_path}/service/tmp/restart.txt"
   end
 
   namespace :web do
