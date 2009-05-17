@@ -22,8 +22,7 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
-//const FIRENOMICS_URL = "http://firenomics.appspot.com";
-const FIRENOMICS_URL = "http://localhost:3000";
+const FIRENOMICS_URL = "http://www.firenomics.com";
 
 var global = this;
 
