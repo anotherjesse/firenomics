@@ -1,9 +1,7 @@
-# import simplejson, uuid, md5, re
 class ApiController < ApplicationController
 
   def update
     json = JSON.parse(params[:data])
-
 
     unless params[:id].blank?
       @profile = Profile.find_by_id(params[:id])
@@ -25,10 +23,7 @@ class ApiController < ApplicationController
                                :platform => json['system']['name'])
 
     # Build a dictionary of the current extensions
-    existing = Hash.new
-    @profile.profile_extensions.each do |pe|
-      existing[pe.extension.mid] = pe
-    end
+    existing = @profile.profile_extensions.index_by { |pe| pe.extension.mid }
 
     json['extensions'].each do |mid, ext_data|
       extension = Extension.find_by_mid(mid)
