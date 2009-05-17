@@ -12,4 +12,19 @@
       %h3 Creator
       %ul
         %li= h(@extension.creator)
+    - if @extension.developers.any?
+      %h3 Developers
+      %ul
+        - @extension.developers.each do |person|
+          %li= h(person)
+    - if @extension.contributors.any?
+      %h3 Contributors
+      %ul
+        - @extension.contributors.each do |person|
+          %li= h(person)
+    - if @extension.translators.any?
+      %h3 Translators
+      %ul
+        - @extension.translators.each do |person|
+          %li= h(person)
   .clear
